@@ -7,19 +7,19 @@
         <item
             android:id="@+id/nav_ping"
             android:icon="@drawable/ic_menu_camera"
-            android:title="IOT Discovery - ping" />
+            android:title="Device Discovery - ping" />
         <item
             android:id="@+id/nav_mdns"
             android:icon="@drawable/ic_menu_manage"
-            android:title="IOT Discovery - mDNS" />
+            android:title="Device Discovery - mDNS" />
         <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_menu_gallery"
-            android:title="IOT Notifications" />
+            android:title="Set Notifications" />
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="WiFi Settings" />
+            android:title="Set WiFi Params" />
     </group>
 
     <item android:title="Communicate">

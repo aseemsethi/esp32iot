@@ -16,6 +16,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     //Store Colors here indexed by posotion
     ArrayList<Integer> myColors = new ArrayList<Integer>();
     int colorVar = Color.BLACK;
+    int selectedPos = RecyclerView.NO_POSITION;
+    int row_index = 0;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mTextView;
@@ -26,6 +28,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
             super(v);
             mTextView = (TextView) v.findViewById(R.id.row_text);
             rootView=(LinearLayout)v.findViewById(R.id.rootView);
+            v.setClickable(true);
         }
     }
 
@@ -49,13 +52,32 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         System.out.println("Bind: " + position);
         //holder.itemView.setBackgroundColor(colorVar);
         //holder.rootView.setBackgroundColor(myColors.get(position));
+        holder.mTextView.setTextSize(15);
         holder.mTextView.setTextColor(myColors.get(position));
         holder.mTextView.setText(history.get(position));
 
+        holder.mTextView.setSelected(selectedPos == position);
+        //holder.mTextView.setBackgroundColor(selected_position == position ?
+        // Color.GREEN : Color.TRANSPARENT);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                row_index=position;
+                notifyDataSetChanged();
+            }
+        });
+
+        if(row_index==position){
+            holder.itemView.setBackgroundColor(Color.parseColor("#e1fcff"));
+        }
+        else
+        {
+            holder.itemView.setBackgroundColor(Color.parseColor("#ffffff"));
+        }
     }
 
     @Override

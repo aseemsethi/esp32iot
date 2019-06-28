@@ -1,7 +1,10 @@
 package com.aseemsethi.esp32_iot;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.nsd.NsdManager;
+import android.net.nsd.NsdServiceInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +14,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Formatter;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +31,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+// mDNS code referred from https://www.dodgycoder.net/2015/02/setting-up-bonjourzeroconfmdnsnsd.html
+
 public class mdnsActivity extends AppCompatActivity {
     TextView ipaddressF, hostsF;
     private ProgressBar progress;
@@ -37,6 +43,17 @@ public class mdnsActivity extends AppCompatActivity {
     private HistoryAdapter mAdapter;
     RecyclerView mRecyclerView;
     String temp = null;
+    private NsdManager mNsdManager;
+    private NsdManager.DiscoveryListener discoveryListener;
+    private NsdManager.ResolveListener mResolveListener;
+    NsdManager.RegistrationListener mRegistrationListener;
+    private NsdServiceInfo mServiceInfo;
+    public String mRPiAddress;
+    // The NSD service type that the RPi exposes.
+    private static final String SERVICE_TYPE = "_http._tcp.";
+    public String mServiceName = "ESP32";
+
+    final String TAG = "mDNS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,16 +80,16 @@ public class mdnsActivity extends AppCompatActivity {
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                InputMethodManager inputManager = (InputMethodManager)
+                /*InputMethodManager inputManager = (InputMethodManager)
                         getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
-                        InputMethodManager.HIDE_NOT_ALWAYS);
+                        InputMethodManager.HIDE_NOT_ALWAYS);*/
 
                 boolean cont = getIP(getApplicationContext());
                 if (cont == false) return;
                 Runnable runnable = new Runnable() {
                     @Override public void run() {
-                        subnetList = scanSubNet(subnetScan, 1);
+                        subnetList = mDNSSearch();
                     }
                 };
                 new Thread(runnable).start();
@@ -85,7 +102,16 @@ public class mdnsActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new HistoryAdapter(new ArrayList<String>());
         mRecyclerView.setAdapter(mAdapter);
+
+        // mDNS stuff
+        mRPiAddress = "";
+        mNsdManager = (NsdManager)(getApplicationContext().getSystemService(Context.NSD_SERVICE));
+        initializeResolveListener();
+        initializeDiscoveryListener();
+        initializeRegistrationListener();
+        //mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
     }
+
     @Override
     public boolean onCreateOptionsMenu (Menu menu){
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -100,60 +126,9 @@ public class mdnsActivity extends AppCompatActivity {
         return true;
     }
 
-    private static boolean isReachable(String addr, int openPort, int timeOutMillis) {
-        // Any Open port on other machine
-        // openPort =  22 - ssh, 80 or 443 - webserver, 25 - mailserver etc.
-        try {
-            Socket soc = new Socket();
-            soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
-            System.out.println("Reachable addr: " + addr);
-            return true;
-        } catch (IOException ex) {
-            return false;
-        }
-    }
-
-    private ArrayList<String> scanSubNet(String subnet, int subnetRange){
+    private ArrayList<String> mDNSSearch(){
         final ArrayList<String> hosts = new ArrayList<String>();
-        InetAddress inetAddress = null;
-        progress.setMax(subnetRange);
-        for(int i=1; i<=subnetRange; i++) {
-            final int val = i;
-            System.out.println("Trying: " + subnet + String.valueOf(i));
-            mHandler.post(new Runnable() {  // or progress.post
-                @Override
-                public void run() {
-                    System.out.println("val: " + val);
-                    progress.setProgress(val);
-                    /* for (String s : hosts) { */
-                    if (temp != null) {
-                        mAdapter.add(temp, Color.BLUE); temp = null;
-                        mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    }
-                }
-            });
-            try {
-                inetAddress = InetAddress.getByName(subnet + String.valueOf(i));
-                if (inetAddress.isReachable(1000)) {
-                    hosts.add(subnet + String.valueOf(i));
-                    temp = ("Ping: " + subnet + String.valueOf(i));
-                    System.out.println("Found Device using Ping: " + inetAddress.getHostName());
-                } else if (isReachable(subnet + String.valueOf(i), 80, 1000)) {
-                    hosts.add(subnet + String.valueOf(i));
-                    temp = ("TCP:80: " + subnet + String.valueOf(i));
-                    System.out.println("Found Device using Telnet:80: " + inetAddress.getHostName());
-                } else if (isReachable(subnet + String.valueOf(i), 22, 1000)) {
-                    hosts.add("SSH:22: " + subnet + String.valueOf(i));
-                    temp = ("SSH:22: " + subnet + String.valueOf(i));
-                    System.out.println("Found Device using SSH:80: " + inetAddress.getHostName());
-                } else
-                    temp = null;
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
         return hosts;
     }
 
@@ -171,4 +146,134 @@ public class mdnsActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    public void initializeDiscoveryListener() {
+
+        // Instantiate a new DiscoveryListener
+        discoveryListener = new NsdManager.DiscoveryListener() {
+
+            // Called as soon as service discovery begins.
+            @Override
+            public void onDiscoveryStarted(String regType) {
+                Log.d(TAG, "Service discovery started");
+            }
+
+            @Override
+            public void onServiceFound(NsdServiceInfo service) {
+                // A service was found! Do something with it.
+                Log.d(TAG, "Service discovery success" + service);
+                if (!service.getServiceType().equals(SERVICE_TYPE)) {
+                    // Service type is the string containing the protocol and
+                    // transport layer for this service.
+                    Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
+                } else if (service.getServiceName().contains("ESP32")){
+                    mNsdManager.resolveService(service, mResolveListener);
+                } else {
+                    mNsdManager.resolveService(service, mResolveListener);
+                }
+            }
+
+            @Override
+            public void onServiceLost(NsdServiceInfo service) {
+                // When the network service is no longer available.
+                // Internal bookkeeping code goes here.
+                Log.e(TAG, "service lost: " + service);
+            }
+
+            @Override
+            public void onDiscoveryStopped(String serviceType) {
+                Log.i(TAG, "Discovery stopped: " + serviceType);
+            }
+
+            @Override
+            public void onStartDiscoveryFailed(String serviceType, int errorCode) {
+                Log.e(TAG, "Start Discovery failed: Error code:" + errorCode);
+            }
+
+            @Override
+            public void onStopDiscoveryFailed(String serviceType, int errorCode) {
+                Log.e(TAG, "Stop Discovery failed: Error code:" + errorCode);
+                //mNsdManager.stopServiceDiscovery(this);
+            }
+        };
+    }
+
+    public void initializeResolveListener() {
+        mResolveListener = new NsdManager.ResolveListener() {
+
+            @Override
+            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                // Called when the resolve fails. Use the error code to debug.
+                Log.e(TAG, "Resolve failed: " + errorCode);
+            }
+
+            @Override
+            public void onServiceResolved(final NsdServiceInfo serviceInfo) {
+                Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
+
+                mServiceInfo = serviceInfo;
+                final int port = mServiceInfo.getPort();
+
+                InetAddress host = mServiceInfo.getHost();
+                final String address = host.getHostAddress();
+                Log.d(TAG, "Resolved address = " + address + " : " + port);
+                mRPiAddress = address;
+                mHandler.post(new Runnable() {  // or progress.post
+                    @Override
+                    public void run() {
+                        mAdapter.add(serviceInfo.getServiceName() + ", "
+                                + serviceInfo.getServiceType() + ", "
+                                + address + ", " + port
+                                , Color.BLUE);
+                        mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    }
+                });
+            }
+        };
+    }
+
+    public void initializeRegistrationListener() {
+        mRegistrationListener = new NsdManager.RegistrationListener() {
+            @Override
+            public void onServiceRegistered(NsdServiceInfo NsdServiceInfo) {
+                mServiceName = NsdServiceInfo.getServiceName();
+            }
+
+            @Override
+            public void onRegistrationFailed(NsdServiceInfo arg0, int arg1) {
+            }
+            @Override
+            public void onServiceUnregistered(NsdServiceInfo arg0) {
+            }
+
+            @Override
+            public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+            }
+
+        };
+    }
+    public void registerService(int port) {
+        NsdServiceInfo serviceInfo  = new NsdServiceInfo();
+        serviceInfo.setPort(port);
+        serviceInfo.setServiceName(mServiceName);
+        serviceInfo.setServiceType(SERVICE_TYPE);
+
+        mNsdManager.registerService(
+                serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+
+    }
+    public void discoverServices() {
+        mNsdManager.discoverServices(
+                SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+    }
+
+    // This method will be invoked when user click android device Back menu at bottom.
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent();
+        intent.putExtra("Address", mRPiAddress);
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
 }

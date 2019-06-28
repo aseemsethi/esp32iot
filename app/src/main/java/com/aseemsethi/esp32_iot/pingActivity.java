@@ -89,7 +89,6 @@ public class pingActivity extends AppCompatActivity {
             }
         });
         // Wait till thread above completes
-        // hostsF.setText(subnetList.toString());
         mRecyclerView = (RecyclerView) findViewById(R.id.iot_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);

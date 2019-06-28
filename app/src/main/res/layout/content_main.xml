@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/order_b"
+                    android:id="@+id/ifttt_b"
                     android:layout_width="0dip"
                     android:layout_column="0"
                     android:layout_marginRight="5dp"
@@ -111,17 +111,16 @@
                     android:text="Device" />
             </TableRow>
 
-            <View android:layout_height="5dp" />
-
+            <View android:layout_height="10dp" />
             <View
                 android:layout_height="2dp"
                 android:background="@color/colorPrimary" />
+            <View android:layout_height="10dp" />
 
             <TableRow
                 android:id="@+id/table_layout_row_3"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp">
+                android:layout_height="wrap_content">
 
                 <Button
                     android:layout_width="0dip"
@@ -158,10 +157,10 @@
             </TableRow>
 
             <View android:layout_height="10dp" />
-
             <View
                 android:layout_height="2dp"
                 android:background="@color/colorPrimary" />
+            <View android:layout_height="10dp" />
 
             <TableRow
                 android:id="@+id/table_layout_row_4"
@@ -174,7 +173,17 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/my_border"
-                    android:text="Dynamic IOT Values Readings" />
+                    android:layout_marginRight="10dp"
+                    android:textStyle="bold"
+                    android:text="IOT Readings for:" />
+                <TextView
+                    android:id="@+id/node"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:background="@drawable/my_border"
+                    android:text="Node IP Address" />
             </TableRow>
 
             <View android:layout_height="10dp" />
@@ -255,11 +264,11 @@
                     android:text="YYY" />
             </TableRow>
 
-            <View android:layout_height="5dp" />
-
+            <View android:layout_height="10dp" />
             <View
                 android:layout_height="2dp"
                 android:background="@color/colorPrimary" />
+            <View android:layout_height="10dp" />
 
             <TableRow
                 android:id="@+id/table_layout_row_8"
@@ -278,7 +287,7 @@
             </TableRow>
 
             <android.support.v7.widget.RecyclerView
-                android:id="@+id/iot_recycler_view"
+                android:id="@+id/main_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
