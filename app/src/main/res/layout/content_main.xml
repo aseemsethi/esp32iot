@@ -231,13 +231,13 @@
                     android:text="HAL" />
 
                 <TextView
-                    android:id="@+id/door_val"
+                    android:id="@+id/http_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
                     android:layout_weight="1"
                     android:background="#f5e8f3"
-                    android:text="Door" />
+                    android:text="HTTP" />
             </TableRow>
 
             <TableRow

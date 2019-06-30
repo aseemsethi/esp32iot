@@ -21,6 +21,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -39,11 +40,12 @@ public class MainActivity extends AppCompatActivity
     final String TAG = "IOT MainActivity";
     private final static int REQUEST_CODE_1 = 1;
     // Child thread sent message type value to activity main thread Handler.
-    private static final int REQUEST_CODE_SHOW_RESPONSE_TEXT = 1;
+    private static final int REQUEST_WIFI = 1;
     private Handler uiUpdater = null;
     private HistoryAdapter mAdapter;
     RecyclerView mRecyclerView;
     String deviceAddress = "";
+    private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
 
     // The key of message stored server returned data.
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -72,9 +74,31 @@ public class MainActivity extends AppCompatActivity
         wifiB.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
                 mAdapter.add("Requesting WiFi Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + "/check?wifi=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
+        final Button httpB = findViewById(R.id.http_b);
+        httpB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                mAdapter.add("Requesting HTTP Status..", Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                String uri = "http://" + deviceAddress + "/check?http=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -84,6 +108,11 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new HistoryAdapter(new ArrayList<String>());
         mRecyclerView.setAdapter(mAdapter);
+
+        mAdapter.add("To Start Monitoring:", Color.BLUE);
+        mAdapter.add("Menu -> Device Discovery and Set Notifications", Color.BLUE);
+        mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+
         initControls();
     }
 
@@ -127,8 +156,7 @@ public class MainActivity extends AppCompatActivity
                     // Send message to main thread to update response text in TextView after read all.
                     Message message = new Message();
                     // Set message type.
-                    message.what = REQUEST_CODE_SHOW_RESPONSE_TEXT;
-
+                    message.what = REQUEST_WIFI;
                     // Create a bundle object.
                     Bundle bundle = new Bundle();
                     // Put response text in the bundle with the special key.
@@ -169,16 +197,23 @@ public class MainActivity extends AppCompatActivity
     private void initControls() {
         // This handler is used to wait for child thread message to update server
         // response text in TextView.
-        if(uiUpdater == null) {
+        if (uiUpdater == null) {
             uiUpdater = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
-                    if(msg.what == REQUEST_CODE_SHOW_RESPONSE_TEXT) {
+                    if (msg.what == REQUEST_WIFI) {
                         Bundle bundle = msg.getData();
-                        if(bundle != null) {
+                        if (bundle != null) {
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
                             mAdapter.add(responseText, Color.BLUE);
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                            if (responseText.contains("WiFi")) {
+                                TextView wifiVal = findViewById(R.id.wifi_val);
+                                wifiVal.setText(responseText);
+                            } else if (responseText.contains("HTTP")) {
+                                TextView httpVal = findViewById(R.id.http_val);
+                                httpVal.setText(responseText);
+                            }
                         }
                     }
                 }

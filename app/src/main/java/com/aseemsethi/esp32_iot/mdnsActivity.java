@@ -52,8 +52,9 @@ public class mdnsActivity extends AppCompatActivity {
     // The NSD service type that the RPi exposes.
     private static final String SERVICE_TYPE = "_http._tcp.";
     public String mServiceName = "ESP32";
+    boolean disoveryStarteed = false;
 
-    final String TAG = "mDNS";
+    final String TAG = "IOT mDNS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class mdnsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_mdns);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        boolean disoveryStarteed = false;
 
         // Use the following 2 lines - else use async threads
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -69,9 +71,6 @@ public class mdnsActivity extends AppCompatActivity {
         ipaddressF = (TextView) findViewById(R.id.mdns_ipaddress);
         hostsF = (TextView) findViewById(R.id.mdns_hosts);
         ipaddressF.setText(null);
-        progress = (ProgressBar) findViewById(R.id.mdns_progressBar1);
-        //make the progress bar visible
-        progress.setVisibility(View.VISIBLE);
 
         // Initialize the self-ip and subnet scan to relevant ip addresses.
         getIP(getApplicationContext());
@@ -86,7 +85,12 @@ public class mdnsActivity extends AppCompatActivity {
                         InputMethodManager.HIDE_NOT_ALWAYS);*/
 
                 boolean cont = getIP(getApplicationContext());
-                if (cont == false) return;
+                if (cont == false) {
+                    mAdapter.add("Please ensure Phone has WiFi IP Address", Color.BLUE);
+                    Log.d(TAG, "No WiFi IP Address");
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
                 Runnable runnable = new Runnable() {
                     @Override public void run() {
                         subnetList = mDNSSearch();
@@ -123,12 +127,21 @@ public class mdnsActivity extends AppCompatActivity {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
         ipaddressF.setText(ipAddress);
-        return true;
+        if (ipAddress.equals("0.0.0.0")) {
+            Log.d(TAG, "IP Address is 0.0.0.0");
+            return false;
+        } else
+            return true;
     }
 
     private ArrayList<String> mDNSSearch(){
         final ArrayList<String> hosts = new ArrayList<String>();
-        mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+        if (disoveryStarteed == false) {
+            disoveryStarteed = true;
+            mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+        } else {
+            Log.d(TAG, "Not restarting discovery services !!!");
+        }
         return hosts;
     }
 
@@ -167,10 +180,36 @@ public class mdnsActivity extends AppCompatActivity {
                     // transport layer for this service.
                     Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
                 } else if (service.getServiceName().contains("ESP32")){
-                    mNsdManager.resolveService(service, mResolveListener);
+                    //mNsdManager.resolveService(service, mResolveListener);
                 } else {
-                    mNsdManager.resolveService(service, mResolveListener);
+                    //mNsdManager.resolveService(service, mResolveListener);
                 }
+                mNsdManager.resolveService(service, new NsdManager.ResolveListener() {
+                    @Override
+                    public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                        Log.e(TAG, "Resolve Failed: ..." + serviceInfo);
+                    }
+                    @Override
+                    public void onServiceResolved(final NsdServiceInfo serviceInfo) {
+                        Log.i(TAG, "Found Service Resolved: " + serviceInfo);
+                        mServiceInfo = serviceInfo;
+                        final int port = mServiceInfo.getPort();
+                        InetAddress host = mServiceInfo.getHost();
+                        final String address = host.getHostAddress();
+                        Log.d(TAG, "Resolved address : " + address + " : " + port);
+                        mRPiAddress = address;
+                        mHandler.post(new Runnable() {  // or progress.post
+                            @Override
+                            public void run() {
+                                mAdapter.add(serviceInfo.getServiceName() + ", "
+                                                + serviceInfo.getServiceType() + ", "
+                                                + address + ", " + port
+                                        , Color.BLUE);
+                                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                            }
+                        });
+                    }
+                });
             }
 
             @Override
@@ -183,21 +222,26 @@ public class mdnsActivity extends AppCompatActivity {
             @Override
             public void onDiscoveryStopped(String serviceType) {
                 Log.i(TAG, "Discovery stopped: " + serviceType);
+                disoveryStarteed = false;
             }
 
             @Override
             public void onStartDiscoveryFailed(String serviceType, int errorCode) {
                 Log.e(TAG, "Start Discovery failed: Error code:" + errorCode);
+                disoveryStarteed = false;
             }
 
             @Override
             public void onStopDiscoveryFailed(String serviceType, int errorCode) {
                 Log.e(TAG, "Stop Discovery failed: Error code:" + errorCode);
                 //mNsdManager.stopServiceDiscovery(this);
+                disoveryStarteed = false;
             }
         };
     }
 
+    // This does not work - we need to create a new ResolverListener for each device found
+    // https://stackoverflow.com/questions/25815162/listener-already-in-use-service-discovery
     public void initializeResolveListener() {
         mResolveListener = new NsdManager.ResolveListener() {
 
@@ -213,7 +257,6 @@ public class mdnsActivity extends AppCompatActivity {
 
                 mServiceInfo = serviceInfo;
                 final int port = mServiceInfo.getPort();
-
                 InetAddress host = mServiceInfo.getHost();
                 final String address = host.getHostAddress();
                 Log.d(TAG, "Resolved address = " + address + " : " + port);
@@ -267,9 +310,14 @@ public class mdnsActivity extends AppCompatActivity {
                 SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
     }
 
+    public void stopListening() {
+        mNsdManager.stopServiceDiscovery(discoveryListener);
+        disoveryStarteed = false;
+    }
     // This method will be invoked when user click android device Back menu at bottom.
     @Override
     public void onBackPressed() {
+        stopListening();
         Intent intent = new Intent();
         intent.putExtra("Address", mRPiAddress);
         setResult(RESULT_OK, intent);
