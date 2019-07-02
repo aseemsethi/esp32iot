@@ -34,21 +34,26 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    final String TAG = "IOT MainActivity";
-    private final static int REQUEST_CODE_1 = 1;
-    // Child thread sent message type value to activity main thread Handler.
+    final String TAG = "ESP32IOT MainActivity";
+    private final static int REQUEST_CODE_1 = 1; // for mDNS
+    private final static int REQUEST_CODE_2 = 2; // for push notifications
+
     private static final int REQUEST_WIFI = 1;
+    private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
     private Handler uiUpdater = null;
     private HistoryAdapter mAdapter;
     RecyclerView mRecyclerView;
     String deviceAddress = "";
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
+    MqttHelper mqttHelper;
+    String mqtt_token = "";
 
-    // The key of message stored server returned data.
-    private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +107,22 @@ public class MainActivity extends AppCompatActivity
                 startSendHttpRequestThread(uri);
             }
         });
+        final Button mqttb = findViewById(R.id.mqtt_b);
+        mqttb.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                mAdapter.add("Requesting MQTT Status..", Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                String uri = "http://" + deviceAddress + "/check?mqtt=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
 
         mRecyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -110,10 +131,11 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.setAdapter(mAdapter);
 
         mAdapter.add("To Start Monitoring:", Color.BLUE);
-        mAdapter.add("Menu -> Device Discovery and Set Notifications", Color.BLUE);
+        mAdapter.add("Enable Menu -> Device Discovery and Meu -> Set Notifications", Color.BLUE);
         mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
 
         initControls();
+        startMqtt();
     }
 
     /* Start a thread to send http request to web server use HttpURLConnection object. */
@@ -265,8 +287,10 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_mdns) {
             Intent intent = new Intent(this, mdnsActivity.class);
             startActivityForResult(intent, REQUEST_CODE_1);
-        } else if (id == R.id.nav_gallery) {
-
+        } else if (id == R.id.nav_notify) {
+            Intent intent = new Intent(this, notificationsActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_2);
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_share) {
@@ -280,6 +304,33 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private void startMqtt(){
+        mqttHelper = new MqttHelper(getApplicationContext());
+        mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean b, String s) {
+                Log.w(TAG,"Connected");
+            }
+
+            @Override
+            public void connectionLost(Throwable throwable) {
+
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+                Log.w(TAG, mqttMessage.toString());
+                mAdapter.add(mqttMessage.toString(), Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+
+            }
+        });
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent dataIntent) {
         super.onActivityResult(requestCode, resultCode, dataIntent);
@@ -291,9 +342,26 @@ public class MainActivity extends AppCompatActivity
                 TextView textView = (TextView)findViewById(R.id.node);
                 if(resultCode == RESULT_OK) {
                     String address = dataIntent.getStringExtra("Address");
+                    if (address.isEmpty()) {
+                        Log.d(TAG, "No Device address set");
+                        return;
+                    }
                     textView.setText(address);
                     deviceAddress = address;
                 }
+                break;
+            case REQUEST_CODE_2:
+                Log.d(TAG, "Push Device Settings returned to main");
+                if(resultCode == RESULT_OK) {
+                    mqtt_token = dataIntent.getStringExtra("mqtt_token");
+                    if (mqtt_token.isEmpty()) {
+                        Log.d(TAG, "No MQTT publish token set");
+                        return;
+                    }
+                    Log.d(TAG, "Recvd mqq token in main : " + mqtt_token);
+                    mqttHelper.subscribeToTopic(mqtt_token);
+                }
+                break;
         }
     }
 }

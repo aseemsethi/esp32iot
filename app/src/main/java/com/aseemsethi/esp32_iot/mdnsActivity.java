@@ -34,7 +34,7 @@ import java.util.ArrayList;
 // mDNS code referred from https://www.dodgycoder.net/2015/02/setting-up-bonjourzeroconfmdnsnsd.html
 
 public class mdnsActivity extends AppCompatActivity {
-    TextView ipaddressF, hostsF;
+    TextView ipaddressF;
     private ProgressBar progress;
     String selfIP = "0.0.0.0";
     String subnetScan = "192.168.1.";
@@ -52,9 +52,9 @@ public class mdnsActivity extends AppCompatActivity {
     // The NSD service type that the RPi exposes.
     private static final String SERVICE_TYPE = "_http._tcp.";
     public String mServiceName = "ESP32";
-    boolean disoveryStarteed = false;
+    boolean disoveryStarted = false;
 
-    final String TAG = "IOT mDNS";
+    final String TAG = "ESP32IOT mDNS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,14 +62,13 @@ public class mdnsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_mdns);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        boolean disoveryStarteed = false;
+        boolean disoveryStarted = false;
 
         // Use the following 2 lines - else use async threads
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        ipaddressF = (TextView) findViewById(R.id.mdns_ipaddress);
-        hostsF = (TextView) findViewById(R.id.mdns_hosts);
+        ipaddressF = (TextView) findViewById(R.id.mdns_self_ipaddress);
         ipaddressF.setText(null);
 
         // Initialize the self-ip and subnet scan to relevant ip addresses.
@@ -136,8 +135,8 @@ public class mdnsActivity extends AppCompatActivity {
 
     private ArrayList<String> mDNSSearch(){
         final ArrayList<String> hosts = new ArrayList<String>();
-        if (disoveryStarteed == false) {
-            disoveryStarteed = true;
+        if (disoveryStarted == false) {
+            disoveryStarted = true;
             mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
         } else {
             Log.d(TAG, "Not restarting discovery services !!!");
@@ -222,20 +221,20 @@ public class mdnsActivity extends AppCompatActivity {
             @Override
             public void onDiscoveryStopped(String serviceType) {
                 Log.i(TAG, "Discovery stopped: " + serviceType);
-                disoveryStarteed = false;
+                disoveryStarted = false;
             }
 
             @Override
             public void onStartDiscoveryFailed(String serviceType, int errorCode) {
                 Log.e(TAG, "Start Discovery failed: Error code:" + errorCode);
-                disoveryStarteed = false;
+                disoveryStarted = false;
             }
 
             @Override
             public void onStopDiscoveryFailed(String serviceType, int errorCode) {
                 Log.e(TAG, "Stop Discovery failed: Error code:" + errorCode);
                 //mNsdManager.stopServiceDiscovery(this);
-                disoveryStarteed = false;
+                disoveryStarted = false;
             }
         };
     }
@@ -311,8 +310,9 @@ public class mdnsActivity extends AppCompatActivity {
     }
 
     public void stopListening() {
-        mNsdManager.stopServiceDiscovery(discoveryListener);
-        disoveryStarteed = false;
+        if (disoveryStarted)
+            mNsdManager.stopServiceDiscovery(discoveryListener);
+        disoveryStarted = false;
     }
     // This method will be invoked when user click android device Back menu at bottom.
     @Override

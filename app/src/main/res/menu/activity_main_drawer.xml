@@ -13,7 +13,7 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="Device Discovery - mDNS" />
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_notify"
             android:icon="@drawable/ic_menu_gallery"
             android:title="Set Notifications" />
         <item

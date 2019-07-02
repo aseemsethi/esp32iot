@@ -48,7 +48,7 @@
             android:text="Self IP Address:" />
 
         <EditText
-            android:id="@+id/mdns_ipaddress"
+            android:id="@+id/mdns_self_ipaddress"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
