@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".pingActivity"
-    tools:showIn="@layout/activity_ping">
+    tools:context=".notificationsActivity"
+    tools:showIn="@layout/activity_notifications">
 
 </android.support.constraint.ConstraintLayout>

@@ -4,11 +4,7 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_ping"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Device Discovery - ping" />
-        <item
+         <item
             android:id="@+id/nav_mdns"
             android:icon="@drawable/ic_menu_manage"
             android:title="Device Discovery - mDNS" />

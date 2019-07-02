@@ -19,10 +19,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".pingActivity"
-            android:label="ping"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
             android:name=".mdnsActivity"
             android:label="mDNS"
             android:parentActivityName=".mdnsActivity"

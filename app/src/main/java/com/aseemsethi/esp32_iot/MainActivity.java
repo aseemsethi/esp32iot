@@ -281,10 +281,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_ping) {
-            Intent intent = new Intent(this, pingActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_mdns) {
+        if (id == R.id.nav_mdns) {
             Intent intent = new Intent(this, mdnsActivity.class);
             startActivityForResult(intent, REQUEST_CODE_1);
         } else if (id == R.id.nav_notify) {
