@@ -93,5 +93,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public int getItemViewType(int position) {
         return position;
     }
+    public void clear() {
+        int size = history.size();
+        history.clear();
+        notifyItemRangeRemoved(0, size);
+    }
 
 }

@@ -247,13 +247,13 @@
                     android:text="XXX" />
 
                 <TextView
-                    android:id="@+id/yyy_val"
+                    android:id="@+id/mqtt_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
                     android:layout_weight="1"
                     android:background="#f4f4f4"
-                    android:text="YYY" />
+                    android:text="MQTT" />
             </TableRow>
 
             <View android:layout_height="10dp" />
@@ -272,10 +272,19 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="0"
-                    android:layout_marginRight="10dp"
+                    android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="#f5e8f3"
                     android:text="MQTT/HTTP Logs..." />
+                <Button
+                    android:id="@+id/clear_b"
+                    android:layout_width="0dip"
+                    android:layout_column="2"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_corner"
+                    android:layout_height="25dp"
+                    android:text="Clear Logs" />
             </TableRow>
 
             <android.support.v7.widget.RecyclerView

@@ -123,6 +123,14 @@ public class MainActivity extends AppCompatActivity
                 startSendHttpRequestThread(uri);
             }
         });
+        final Button clear = findViewById(R.id.clear_b);
+        clear.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.startAnimation(buttonClick);
+                mAdapter.clear();
+            }
+        });
 
         mRecyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -235,6 +243,9 @@ public class MainActivity extends AppCompatActivity
                             } else if (responseText.contains("HTTP")) {
                                 TextView httpVal = findViewById(R.id.http_val);
                                 httpVal.setText(responseText);
+                            } else if (responseText.contains("MQTT")) {
+                                TextView mqttVal = findViewById(R.id.mqtt_val);
+                                mqttVal.setText(responseText);
                             }
                         }
                     }

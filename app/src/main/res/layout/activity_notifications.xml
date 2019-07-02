@@ -97,7 +97,7 @@
                 android:layout_weight="8"
                 android:textSize="20dp"
                 android:background="#f4f4f4"
-                android:text="esp32sensor/+" />
+                android:text="esp32sensor/1" />
         </TableRow>
 
         <View android:layout_height="10dp" />
