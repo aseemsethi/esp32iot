@@ -41,7 +41,7 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner_heading"
-                    android:text="Device ID" />
+                    android:text="Node ID" />
             </TableRow>
 
             <View android:layout_height="10dp" />
