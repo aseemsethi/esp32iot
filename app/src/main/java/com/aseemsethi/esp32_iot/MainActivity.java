@@ -248,27 +248,31 @@ public class MainActivity extends AppCompatActivity
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
                             mAdapter.add(responseText, Color.BLUE);
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                            if (responseText.contains("WiFi")) {
-                                TextView wifiVal = findViewById(R.id.wifi_val);
-                                wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                                wifiVal.setText(responseText);
-                            } else if (responseText.contains("HTTP")) {
-                                TextView httpVal = findViewById(R.id.http_val);
-                                httpVal.setText(responseText);
-                                httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                            } else if (responseText.contains("MQTT")) {
-                                TextView mqttVal = findViewById(R.id.mqtt_val);
-                                mqttVal.setText(responseText);
-                                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                            } else if (responseText.contains("Temp")) {
-                                TextView mqttVal = findViewById(R.id.temp_val);
-                                mqttVal.setText(responseText);
-                                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                            }
+                            updateView(responseText);
                         }
                     }
                 }
             };
+        }
+    }
+    public void updateView(String responseText) {
+        Log.d(TAG, "Updating view");
+        if (responseText.contains("WiFi")) {
+            TextView wifiVal = findViewById(R.id.wifi_val);
+            wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
+            wifiVal.setText(responseText);
+        } else if (responseText.contains("HTTP")) {
+            TextView httpVal = findViewById(R.id.http_val);
+            httpVal.setText(responseText);
+            httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
+        } else if (responseText.contains("MQTT")) {
+            TextView mqttVal = findViewById(R.id.mqtt_val);
+            mqttVal.setText(responseText);
+            mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
+        } else if (responseText.contains("Temp")) {
+            TextView mqttVal = findViewById(R.id.temp_val);
+            mqttVal.setText(responseText);
+            mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
         }
     }
 
@@ -349,6 +353,7 @@ public class MainActivity extends AppCompatActivity
                 Log.w(TAG, mqttMessage.toString());
                 mAdapter.add(mqttMessage.toString(), Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                updateView(mqttMessage.toString());
             }
 
             @Override

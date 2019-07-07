@@ -158,7 +158,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
-                    android:layout_weight="1"
+                    android:layout_weight="1.5"
                     android:background="#f4f4f4"
                     android:text="WiFi SSID" />
             </TableRow>
@@ -185,7 +185,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
-                    android:layout_weight="1"
+                    android:layout_weight="1.5"
                     android:background="#f5e8f3"
                     android:text="HTTP" />
             </TableRow>
@@ -209,7 +209,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
-                    android:layout_weight="1"
+                    android:layout_weight="1.5"
                     android:background="#f4f4f4"
                     android:text="MQTT" />
             </TableRow>
