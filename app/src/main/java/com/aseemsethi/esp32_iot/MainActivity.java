@@ -2,6 +2,7 @@ package com.aseemsethi.esp32_iot;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity
     final String TAG = "ESP32IOT MainActivity";
     private final static int REQUEST_CODE_1 = 1; // for mDNS
     private final static int REQUEST_CODE_2 = 2; // for push notifications
+    private final static int REQUEST_CODE_3 = 3; // for mqtt topic
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -60,14 +62,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -120,6 +115,22 @@ public class MainActivity extends AppCompatActivity
                 mAdapter.add("Requesting MQTT Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + "/check?mqtt=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
+        final Button tempb = findViewById(R.id.temp_b);
+        tempb.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                mAdapter.add("Requesting Temperature Status..", Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                String uri = "http://" + deviceAddress + "/check?temp=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -239,13 +250,20 @@ public class MainActivity extends AppCompatActivity
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                             if (responseText.contains("WiFi")) {
                                 TextView wifiVal = findViewById(R.id.wifi_val);
+                                wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
                                 wifiVal.setText(responseText);
                             } else if (responseText.contains("HTTP")) {
                                 TextView httpVal = findViewById(R.id.http_val);
                                 httpVal.setText(responseText);
+                                httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
                             } else if (responseText.contains("MQTT")) {
                                 TextView mqttVal = findViewById(R.id.mqtt_val);
                                 mqttVal.setText(responseText);
+                                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
+                            } else if (responseText.contains("Temp")) {
+                                TextView mqttVal = findViewById(R.id.temp_val);
+                                mqttVal.setText(responseText);
+                                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
                             }
                         }
                     }
@@ -299,9 +317,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, notificationsActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_2);
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_share) {
+        } else if (id == R.id.nav_mqtt) {
+            Intent intent = new Intent(this, setMqttActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_3);
+        } else if (id == R.id.nav_wifi) {
 
         } else if (id == R.id.nav_send) {
 
@@ -348,6 +367,7 @@ public class MainActivity extends AppCompatActivity
             // This request code is set by startActivityForResult(intent, REQUEST_CODE_1) method.
             case REQUEST_CODE_1:
                 TextView textView = (TextView)findViewById(R.id.node);
+                TextView textView1 = (TextView)findViewById(R.id.mdns_val);
                 if(resultCode == RESULT_OK) {
                     String address = dataIntent.getStringExtra("Address");
                     if (address.isEmpty()) {
@@ -356,9 +376,17 @@ public class MainActivity extends AppCompatActivity
                     }
                     textView.setText(address);
                     deviceAddress = address;
+                    String service = dataIntent.getStringExtra("gServiceName");
+                    if (service.isEmpty()) {
+                        Log.d(TAG, "No Service Name set");
+                        return;
+                    }
+                    textView1.setText(service);
+                    textView1.setTypeface(null, Typeface.BOLD_ITALIC);
                 }
                 break;
             case REQUEST_CODE_2:
+            case REQUEST_CODE_3:
                 Log.d(TAG, "Push Device Settings returned to main");
                 if(resultCode == RESULT_OK) {
                     mqtt_token = dataIntent.getStringExtra("mqtt_token");

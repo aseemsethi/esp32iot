@@ -11,11 +11,15 @@
         <item
             android:id="@+id/nav_notify"
             android:icon="@drawable/ic_menu_gallery"
-            android:title="Set Notifications" />
+            android:title="Set Device Notifications" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_wifi"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Set WiFi Params" />
+        <item
+            android:id="@+id/nav_mqtt"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Set MQTT Topic" />
     </group>
 
     <item android:title="Communicate">

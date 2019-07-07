@@ -88,48 +88,6 @@
 
             <View android:layout_height="5dp" />
 
-            <TableRow
-                android:id="@+id/table_layout_row_2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Button
-                    android:id="@+id/ifttt_b"
-                    android:layout_width="0dip"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="IFTTT" />
-
-                <Button
-                    android:id="@+id/mDNS_b"
-                    android:layout_width="0dip"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="mDNS" />
-
-                <Button
-                    android:id="@+id/camera_b"
-                    android:layout_width="0dip"
-                    android:layout_column="1"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="Camera" />
-
-                <Button
-                    android:id="@+id/device_b"
-                    android:layout_width="0dip"
-                    android:layout_column="2"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="Device" />
-            </TableRow>
-
             <View android:layout_height="10dp" />
             <View
                 android:layout_height="2dp"
@@ -149,13 +107,13 @@
                     android:text="Sensors" />
 
                 <Button
-                    android:id="@+id/door_b"
+                    android:id="@+id/temp_b"
                     android:layout_width="0dip"
                     android:layout_column="1"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
-                    android:text="Door" />
+                    android:text="Temp" />
 
                 <Button
                     android:id="@+id/dth_b"
@@ -186,14 +144,14 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/dth_val"
+                    android:id="@+id/mdns_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="0"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:background="#f4f4f4"
-                    android:text="DTH" />
+                    android:text="mDNS Name" />
 
                 <TextView
                     android:id="@+id/wifi_val"
@@ -213,14 +171,14 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/hal_val"
+                    android:id="@+id/temp_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_column="0"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:background="#f5e8f3"
-                    android:text="HAL" />
+                    android:text="Temperature" />
 
                 <TextView
                     android:id="@+id/http_val"

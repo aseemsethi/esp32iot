@@ -56,6 +56,7 @@ public class mdnsActivity extends AppCompatActivity {
     NsdManager.RegistrationListener mRegistrationListener;
     private NsdServiceInfo mServiceInfo;
     public String mRPiAddress;
+    public String gServiceName;
     // The NSD service type that the RPi exposes.
     private static final String SERVICE_TYPE = "_http._tcp.";
     public String mServiceName = "ESP32";
@@ -217,6 +218,7 @@ public class mdnsActivity extends AppCompatActivity {
                         final String address = host.getHostAddress();
                         Log.d(TAG, "Resolved address : " + address + " : " + port);
                         mRPiAddress = address;
+                        gServiceName = serviceInfo.getServiceName();
                         mHandler.post(new Runnable() {  // or progress.post
                             @Override
                             public void run() {
@@ -340,6 +342,7 @@ public class mdnsActivity extends AppCompatActivity {
         stopListening();
         Intent intent = new Intent();
         intent.putExtra("Address", mRPiAddress);
+        intent.putExtra("gServiceName", gServiceName);
         setResult(RESULT_OK, intent);
         finish();
     }

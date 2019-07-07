@@ -29,6 +29,11 @@
             android:parentActivityName=".notificationsActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
+            android:name=".setMqttActivity"
+            android:label="notification"
+            android:parentActivityName=".setMqttActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
