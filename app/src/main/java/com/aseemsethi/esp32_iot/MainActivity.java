@@ -1,6 +1,9 @@
 package com.aseemsethi.esp32_iot;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -25,6 +28,7 @@ import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +59,7 @@ public class MainActivity extends AppCompatActivity
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
     MqttHelper mqttHelper;
     String mqtt_token = "";
+    MyReceiver myReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,12 +160,20 @@ public class MainActivity extends AppCompatActivity
 
         initControls();
         startMqtt();
+        //Register BroadcastReceiver
+        //to receive event from our service
+        myReceiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(mqttService.MQTTMSG_ACTION);
+        registerReceiver(myReceiver, intentFilter);
+        startService(new Intent(this, mqttService.class));
     }
 
     /* Start a thread to send http request to web server use HttpURLConnection object. */
     private void startSendHttpRequestThread(final String reqUrl) {
         Thread sendHttpRequestThread = new Thread(){
             @Override public void run() {
+                Log.d(TAG, "Connecting to URI: " +  reqUrl);
                 // Maintain http url connection.
                 HttpURLConnection httpConn = null;
                 // Read text input stream.
@@ -404,5 +417,19 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
+    }
+
+    private class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context arg0, Intent arg1) {
+            String msg = arg1.getStringExtra("MQTTRCV");
+            Log.d(TAG, "Recvd from Service: " + msg);
+            Toast.makeText(getApplicationContext(),
+           "Broadcast Rcv!\n" + msg, Toast.LENGTH_LONG).show();
+            mAdapter.add(msg, Color.BLUE);
+            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+
+        }
+
     }
 }
