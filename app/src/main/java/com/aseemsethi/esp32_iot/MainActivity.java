@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
 
         initControls();
-        startMqtt();
+        //startMqtt();
         //Register BroadcastReceiver
         //to receive event from our service
         myReceiver = new MyReceiver();
@@ -413,7 +413,7 @@ public class MainActivity extends AppCompatActivity
                         return;
                     }
                     Log.d(TAG, "Recvd mqq token in main : " + mqtt_token);
-                    mqttHelper.subscribeToTopic(mqtt_token);
+                    //mqttHelper.subscribeToTopic(mqtt_token);
                 }
                 break;
         }
@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity
            "Broadcast Rcv!\n" + msg, Toast.LENGTH_LONG).show();
             mAdapter.add(msg, Color.BLUE);
             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-
+            updateView(msg);
         }
 
     }

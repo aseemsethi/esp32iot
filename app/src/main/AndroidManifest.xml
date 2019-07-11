@@ -23,7 +23,7 @@
         <service
             android:name=".mqttService"
             android:enabled="true"
-            android:process=".mqtt_iot"
+            android:process=":background"
             android:exported="false"></service>
 
         <uses-library
@@ -56,7 +56,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name="org.eclipse.paho.android.service.MqttService" />
+        <service android:name="org.eclipse.paho.android.service.MqttService"
+            android:process=":background"/>
     </application>
 
 </manifest>

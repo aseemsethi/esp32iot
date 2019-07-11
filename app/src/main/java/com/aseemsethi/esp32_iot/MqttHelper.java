@@ -18,7 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MqttHelper {
     public MqttAndroidClient mqttAndroidClient;
-    final String TAG = "ESP32IOT MQTT";
+    final String TAG = "ESP32IOT MQTT Helper";
 
     //final String serverUri = "tcp://broker.hivemq.com:1883";
     final String serverUri = "tcp://iot.eclipse.org:1883";
@@ -75,6 +75,7 @@ public class MqttHelper {
                     disconnectedBufferOptions.setPersistBuffer(false);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
+                    Log.d(TAG, "Subscribing to: " + subscriptionTopic);
                     subscribeToTopic();
                 }
 
@@ -111,12 +112,12 @@ public class MqttHelper {
         }
     }
 
-    public void subscribeToTopic(String subscriptionTopic) {
+    public void subscribeToTopic(final String subscriptionTopic) {
         try {
             mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.w(TAG,"Subscribed");
+                    Log.w(TAG,"Subscribed to: " + subscriptionTopic);
                 }
 
                 @Override
