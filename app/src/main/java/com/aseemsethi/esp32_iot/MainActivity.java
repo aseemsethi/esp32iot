@@ -1,17 +1,23 @@
 package com.aseemsethi.esp32_iot;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +44,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -163,14 +170,83 @@ public class MainActivity extends AppCompatActivity
         //Register BroadcastReceiver
         //to receive event from our service
         myReceiver = new MyReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(mqttService.MQTTMSG_ACTION);
-        registerReceiver(myReceiver, intentFilter);
-        startService(new Intent(this, mqttService.class));
+
+        Context context = getApplicationContext();
+        Intent serviceIntent = new Intent(context, mqttService.class);
+        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+        startService(serviceIntent);
     }
 
+    public static Intent convertImplicitIntentToExplicitIntent(Intent implicitIntent, Context context) {
+        PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> resolveInfoList = pm.queryIntentServices(implicitIntent, 0);
+
+        if (resolveInfoList == null || resolveInfoList.size() != 1) {
+            return null;
+        }
+        ResolveInfo serviceInfo = resolveInfoList.get(0);
+        ComponentName component = new ComponentName(serviceInfo.serviceInfo.packageName, serviceInfo.serviceInfo.name);
+        Intent explicitIntent = new Intent(implicitIntent);
+        explicitIntent.setComponent(component);
+        return explicitIntent;
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            Log.v(TAG,"Permission: "+permissions[0]+ "was "+ grantResults[0]);
+            //resume tasks needing this permission
+        }
+    }
+
+    public  boolean isStorageReadPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Read Permission is granted");
+                return true;
+            } else {
+                Log.v(TAG,"Read Permission is revoked");
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Read Permission is granted");
+            return true;
+        }
+    }
+    public  boolean isStorageWritePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Write Permission is granted");
+                return true;
+            } else {
+                Log.v(TAG,"Write Permission is revoked");
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Write Permission is granted");
+            return true;
+        }
+    }
     /* Start a thread to send http request to web server use HttpURLConnection object. */
     private void startSendHttpRequestThread(final String reqUrl) {
+        boolean ret = isStorageReadPermissionGranted();
+        if (ret == false) {
+            Log.d(TAG, "No permission granted for Read Ext Strage, needed by HTTP");
+            return;
+        }
+        ret = isStorageWritePermissionGranted();
+        if (ret == false) {
+            Log.d(TAG, "No permission granted for Write Ext Strage, needed by HTTP");
+            return;
+        }
         Thread sendHttpRequestThread = new Thread(){
             @Override public void run() {
                 Log.d(TAG, "Connecting to URI: " +  reqUrl);
@@ -412,8 +488,13 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "No MQTT publish token set");
                         return;
                     }
-                    Log.d(TAG, "Recvd mqq token in main : " + mqtt_token);
+                    Log.d(TAG, "Recvd mqtt token in main : " + mqtt_token);
                     //mqttHelper.subscribeToTopic(mqtt_token);
+                    Context context = getApplicationContext();
+                    Intent serviceIntent = new Intent(context, mqttService.class);
+                    serviceIntent.setAction(mqttService.MQTTSUBSCRIBE_ACTION);
+                    serviceIntent.putExtra("topic", mqtt_token);
+                    startService(serviceIntent);
                 }
                 break;
         }

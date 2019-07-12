@@ -29,7 +29,8 @@ do so. This allows components in different applications to share a process,
 reducing resource usage.
 */
 public class mqttService extends Service {
-    final static String MQTTMSG_ACTION = "MQTTMSG_ACTION";
+    final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
+    final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
     final String TAG = "ESP32IOT mqttService";
     NotificationManager mNotificationManager;
     Notification notification;
@@ -73,7 +74,7 @@ public class mqttService extends Service {
 
                     @Override
                     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                        Log.w(TAG, "Recvd: " + mqttMessage.toString());
+                        Log.w(TAG, "MQTT Recvd: " + mqttMessage.toString());
                         Intent intent1 = new Intent();
                         intent1.setAction(MQTTMSG_ACTION);
                         intent1.putExtra("MQTTRCV", mqttMessage.toString());
@@ -92,17 +93,28 @@ public class mqttService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started mqttService");
 
-        mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
-                "my_channel_01",
-                NotificationManager.IMPORTANCE_LOW);
-        mChannel.enableLights(true);
-        mChannel.setLightColor(Color.RED);
-        mChannel.enableVibration(true);
-        mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-        mNotificationManager.createNotificationChannel(mChannel);
-
-        runMyTask();
+        String action = intent.getAction();
+        Log.d(TAG,"ACTION: "+action);
+        switch (action) {
+            case MQTTMSG_ACTION:
+                Log.d(TAG, "Starting mqttService first time !!");
+                mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
+                        "my_channel_01",
+                        NotificationManager.IMPORTANCE_LOW);
+                mChannel.enableLights(true);
+                mChannel.setLightColor(Color.RED);
+                mChannel.enableVibration(true);
+                mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                mNotificationManager.createNotificationChannel(mChannel);
+                enableNotification();
+                runMyTask();
+                break;
+            case MQTTSUBSCRIBE_ACTION:
+                mqtt_token = intent.getStringExtra("topic");
+                Log.d(TAG, "Recvd MQTT Token to subscribe: " + mqtt_token);
+                mqttHelper.subscribeToTopic(mqtt_token);
+        }
         return START_STICKY;
     }
     @Override
@@ -112,12 +124,35 @@ public class mqttService extends Service {
         //stopping the player when service is destroyed
     }
 
-    private void sendNotification(String msg) {
-
+    private void enableNotification() {
         Log.d(TAG, "Send Notification...");
 
         // Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, mqttService.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_menu_camera)
+                .setContentTitle("Security")
+                .setContentText("Alerts ON")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent)
+                .setChannelId(CHANNEL_ID)
+                .setAutoCancel(true);
+
+        // Build the notification.
+        notification = builder.build();
+        // Start foreground service.
+        startForeground(1, notification);
+    }
+
+    private void sendNotification(String msg) {
+        Log.d(TAG, "Send Notification...");
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
@@ -134,9 +169,6 @@ public class mqttService extends Service {
         // Build the notification.
         notification = builder.build();
         mNotificationManager.notify(0, notification);
-
-        // Start foreground service.
-        startForeground(1, notification);
     }
 
 }
