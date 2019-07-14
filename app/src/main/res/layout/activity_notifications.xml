@@ -148,7 +148,6 @@
         android:scrollbars="vertical"
         android:verticalScrollbarPosition="right"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
     </android.support.v7.widget.RecyclerView>
 
     <LinearLayout

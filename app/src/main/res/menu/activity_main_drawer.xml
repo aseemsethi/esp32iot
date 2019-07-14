@@ -13,9 +13,9 @@
             android:icon="@drawable/ic_menu_gallery"
             android:title="Set Device Notifications" />
         <item
-            android:id="@+id/nav_wifi"
+            android:id="@+id/nav_sensor"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="Set WiFi Params" />
+            android:title="Set Sensors" />
         <item
             android:id="@+id/nav_mqtt"
             android:icon="@drawable/ic_menu_slideshow"

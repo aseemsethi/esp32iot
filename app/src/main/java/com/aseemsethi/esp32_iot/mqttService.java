@@ -8,7 +8,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -34,7 +38,7 @@ public class mqttService extends Service {
     final String TAG = "ESP32IOT mqttService";
     NotificationManager mNotificationManager;
     Notification notification;
-    String CHANNEL_ID = "my_channel_01";
+    String CHANNEL_ID = "my_channel";
     MqttHelper mqttHelper;
     String mqtt_token = "";
 
@@ -67,7 +71,7 @@ public class mqttService extends Service {
                 mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
                     @Override
                     public void connectComplete(boolean b, String s) {
-                        Log.w(TAG,"mattService Connected");
+                        Log.w(TAG,"mqttService Connected");
                     }
                     @Override
                     public void connectionLost(Throwable throwable) { }
@@ -92,7 +96,11 @@ public class mqttService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started mqttService");
-
+        AudioAttributes att = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build();
+        Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         String action = intent.getAction();
         Log.d(TAG,"ACTION: "+action);
         switch (action) {
@@ -100,12 +108,11 @@ public class mqttService extends Service {
                 Log.d(TAG, "Starting mqttService first time !!");
                 mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
                 NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
-                        "my_channel_01",
+                        "my_channel",
                         NotificationManager.IMPORTANCE_LOW);
                 mChannel.enableLights(true);
+                mChannel.setSound(uri,att);
                 mChannel.setLightColor(Color.RED);
-                mChannel.enableVibration(true);
-                mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
                 mNotificationManager.createNotificationChannel(mChannel);
                 enableNotification();
                 runMyTask();
@@ -117,11 +124,22 @@ public class mqttService extends Service {
         }
         return START_STICKY;
     }
+    @Override public void onTaskRemoved(Intent rootIntent) {
+        Log.d(TAG, "Task Removed mqttService");
+        super.onTaskRemoved(rootIntent);
+
+        Context context = getApplicationContext();
+        Intent serviceIntent = new Intent(context, mqttService.class);
+        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+    }
     @Override
     public void onDestroy() {
         Log.d(TAG, "Destroyed mqttService");
         super.onDestroy();
-        //stopping the player when service is destroyed
+
+        Context context = getApplicationContext();
+        Intent serviceIntent = new Intent(context, mqttService.class);
+        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
     }
 
     private void enableNotification() {
@@ -139,6 +157,7 @@ public class mqttService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .setChannelId(CHANNEL_ID)
                 .setAutoCancel(true);
 
@@ -163,6 +182,7 @@ public class mqttService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .setChannelId(CHANNEL_ID)
                 .setAutoCancel(true);
 

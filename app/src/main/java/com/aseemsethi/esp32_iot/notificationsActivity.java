@@ -86,17 +86,17 @@ public class notificationsActivity extends AppCompatActivity {
                 mqtt_token = (mqtt_tokenF).getText().toString();
                 boolean cont = getIP(getApplicationContext());
                 if (cont == false) {
-                    mAdapter.add("Please ensure Phone has WiFi IP Address", Color.BLUE);
-                    Log.d(TAG, "No WiFi IP Address");
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
+                    //mAdapter.add("Please ensure Phone has WiFi IP Address", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    Log.d(TAG, "WiFi IP Address of Device missing");
+                    //return;
                 }
                 if (ipaddressDev.getText().toString().isEmpty()) {
                     mAdapter.add("Device IP Address is Null. Select IOT Device : Menu->Discovery", Color.BLUE);
                     return;
                 }
                 if (mqtt == true) {
-                    String uri = "http://" + ipaddressDev.getText() + "/enable?mqtt=1"
+                    String uri = "http://" + ipaddressDev.getText() + ":8080/enable?mqtt=1"
                             + "&mqtt_topic=" + mqtt_token;
                     Log.d(TAG, "Sending MQTT Enable to Device: " + uri);
                     mAdapter.add("Sending MQTT Enable to Device: " + uri, Color.BLUE);
@@ -121,8 +121,7 @@ public class notificationsActivity extends AppCompatActivity {
                 } else ifttt = false;
             }
         });
-        // Wait till thread above completes
-        // hostsF.setText(subnetList.toString());
+
         mRecyclerView = (RecyclerView) findViewById(R.id.notify_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);

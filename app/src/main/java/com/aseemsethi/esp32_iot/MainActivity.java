@@ -37,6 +37,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_1 = 1; // for mDNS
     private final static int REQUEST_CODE_2 = 2; // for push notifications
     private final static int REQUEST_CODE_3 = 3; // for mqtt topic
+    private final static int REQUEST_CODE_4 = 4; // for sensors
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity
                 v.startAnimation(buttonClick);
                 mAdapter.add("Requesting WiFi Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + "/check?wifi=1";
+                String uri = "http://" + deviceAddress + ":8080/check?wifi=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -110,7 +113,7 @@ public class MainActivity extends AppCompatActivity
                 v.startAnimation(buttonClick);
                 mAdapter.add("Requesting HTTP Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + "/check?http=1";
+                String uri = "http://" + deviceAddress + ":8080/check?http=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -126,7 +129,7 @@ public class MainActivity extends AppCompatActivity
                 v.startAnimation(buttonClick);
                 mAdapter.add("Requesting MQTT Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + "/check?mqtt=1";
+                String uri = "http://" + deviceAddress + ":8080/check?mqtt=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -142,7 +145,7 @@ public class MainActivity extends AppCompatActivity
                 v.startAnimation(buttonClick);
                 mAdapter.add("Requesting Temperature Status..", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + "/check?temp=1";
+                String uri = "http://" + deviceAddress + ":8080/check?temp=1";
                 startSendHttpRequestThread(uri);
             }
         });
@@ -162,7 +165,7 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.setAdapter(mAdapter);
 
         mAdapter.add("To Start Monitoring:", Color.BLUE);
-        mAdapter.add("Enable Menu -> Device Discovery and Meu -> Set Notifications", Color.BLUE);
+        mAdapter.add("Enable Menu -> Device Discovery and Menu -> Set Notifications", Color.BLUE);
         mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
 
         initControls();
@@ -174,22 +177,32 @@ public class MainActivity extends AppCompatActivity
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context, mqttService.class);
         serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
-        startService(serviceIntent);
+        startForegroundService(serviceIntent);
+
+        // File Storage
+        FileOutputStream fos;
+        try {
+            fos = openFileOutput("esp32configNode", Context.MODE_PRIVATE);
+            //default mode is PRIVATE, can be APPEND etc.
+            fos.write("Aseem Sethi".getBytes());
+            fos.close();
+            Toast.makeText(getApplicationContext(), "esp32config" + " saved",
+                    Toast.LENGTH_LONG).show();
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+        catch (IOException e) {e.printStackTrace();}
+
+        // Read config
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32configNode")));
+            String inputString;
+            while ((inputString = inputReader.readLine()) != null) {
+                Toast.makeText(getApplicationContext(),inputString,
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (IOException e) { e.printStackTrace();}
     }
 
-    public static Intent convertImplicitIntentToExplicitIntent(Intent implicitIntent, Context context) {
-        PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfoList = pm.queryIntentServices(implicitIntent, 0);
-
-        if (resolveInfoList == null || resolveInfoList.size() != 1) {
-            return null;
-        }
-        ResolveInfo serviceInfo = resolveInfoList.get(0);
-        ComponentName component = new ComponentName(serviceInfo.serviceInfo.packageName, serviceInfo.serviceInfo.name);
-        Intent explicitIntent = new Intent(implicitIntent);
-        explicitIntent.setComponent(component);
-        return explicitIntent;
-    }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -413,8 +426,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_mqtt) {
             Intent intent = new Intent(this, setMqttActivity.class);
             startActivityForResult(intent, REQUEST_CODE_3);
-        } else if (id == R.id.nav_wifi) {
-
+        } else if (id == R.id.nav_sensor) {
+            Intent intent = new Intent(this, setSensorActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_4);
         } else if (id == R.id.nav_send) {
 
         }
@@ -462,16 +476,29 @@ public class MainActivity extends AppCompatActivity
             case REQUEST_CODE_1:
                 TextView textView = (TextView)findViewById(R.id.node);
                 TextView textView1 = (TextView)findViewById(R.id.mdns_val);
+                // User could have selected Search for IOT or entered DuckDNS Domain Name
                 if(resultCode == RESULT_OK) {
                     String address = dataIntent.getStringExtra("Address");
-                    if (address.isEmpty()) {
+                    if (address == null || address.isEmpty()) {
                         Log.d(TAG, "No Device address set");
-                        return;
+                        String domain = dataIntent.getStringExtra("DomainAddress");
+                        if (domain.isEmpty()) {
+                            Log.d(TAG, "No Device Domain set");
+                        } else {
+                                Log.d(TAG, "Device Domain set: " + domain);
+                            // This means that the user did not do a search but selected domain
+                                textView.setText(domain);
+                                // DNS Resolve this address now and set it to deviceAddress
+                                deviceAddress = domain;
+                        }
+                    } else {
+                        textView.setText(address);
+                        deviceAddress = address;
                     }
-                    textView.setText(address);
-                    deviceAddress = address;
+
+                    // gServiceName is mDNS ServiceName
                     String service = dataIntent.getStringExtra("gServiceName");
-                    if (service.isEmpty()) {
+                    if (service == null || service.isEmpty()) {
                         Log.d(TAG, "No Service Name set");
                         return;
                     }
@@ -495,6 +522,20 @@ public class MainActivity extends AppCompatActivity
                     serviceIntent.setAction(mqttService.MQTTSUBSCRIBE_ACTION);
                     serviceIntent.putExtra("topic", mqtt_token);
                     startService(serviceIntent);
+                }
+                break;
+            case REQUEST_CODE_4:
+                Log.d(TAG, "Sensor Settings returned to main");
+                if(resultCode == RESULT_OK) {
+                    String sensorName = dataIntent.getStringExtra("sensorName");
+                    String sensorTag = dataIntent.getStringExtra("sensorTag");
+                    if (sensorName.isEmpty() || sensorTag.isEmpty()) {
+                        Log.d(TAG, "Sensor Name or Tag is empty");
+                        return;
+                    }
+                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag);
+                    mAdapter.add("Sensor Added: " + sensorName + " : " + sensorTag, Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 }
                 break;
         }

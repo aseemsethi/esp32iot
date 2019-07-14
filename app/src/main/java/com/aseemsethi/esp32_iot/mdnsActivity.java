@@ -119,6 +119,22 @@ public class mdnsActivity extends AppCompatActivity {
                 startSendHttpRequestThread(uri);
             }
         });
+
+        Button myDomainB = (Button) findViewById(R.id.setmyDomain);
+        myDomainB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText myDomain = (EditText) findViewById(R.id.myDomain);
+                String myDomainVal = myDomain.getText().toString();
+                if (myDomainVal.isEmpty()) return;
+                Log.d(TAG, "MyDomain Selected: " + myDomainVal);
+                mRPiAddress = myDomainVal;
+                Intent intent = new Intent();
+                intent.putExtra("DomainAddress", mRPiAddress);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
         // Wait till thread above completes
         // hostsF.setText(subnetList.toString());
         mRecyclerView = (RecyclerView) findViewById(R.id.iot_recycler_view);
