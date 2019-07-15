@@ -128,18 +128,14 @@ public class mqttService extends Service {
         Log.d(TAG, "Task Removed mqttService");
         super.onTaskRemoved(rootIntent);
 
-        Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, mqttService.class);
-        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+        Log.d(TAG, "onTaskRemoved...attempting to Start mqttService..");
+        sendBroadcast(new Intent("RestartMqtt"));
     }
     @Override
     public void onDestroy() {
-        Log.d(TAG, "Destroyed mqttService");
+        Log.d(TAG, "onDestroy...attempting to restart mqttService");
         super.onDestroy();
-
-        Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, mqttService.class);
-        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+        sendBroadcast(new Intent("RestartMqtt"));
     }
 
     private void enableNotification() {

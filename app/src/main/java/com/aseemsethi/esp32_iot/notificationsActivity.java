@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -50,8 +51,10 @@ public class notificationsActivity extends AppCompatActivity {
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
     boolean mqtt = false;
     boolean ifttt = false;
+    boolean ddns = false;
     String mqtt_token = "";
     String ifttt_token = "";
+    String ddns_uri = "";
     private final static int REQUEST_CODE_1 = 1;
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -84,6 +87,8 @@ public class notificationsActivity extends AppCompatActivity {
                 view.startAnimation(buttonClick);
                 EditText mqtt_tokenF = findViewById(R.id.mqtt_val);
                 mqtt_token = (mqtt_tokenF).getText().toString();
+                EditText ddnsT = findViewById(R.id.ddns_val);
+                ddns_uri = ddnsT.getText().toString();
                 boolean cont = getIP(getApplicationContext());
                 if (cont == false) {
                     //mAdapter.add("Please ensure Phone has WiFi IP Address", Color.BLUE);
@@ -103,6 +108,13 @@ public class notificationsActivity extends AppCompatActivity {
                     mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     startSendHttpRequestThread(uri);
                 }
+                if (ddns == true) {
+                    String uri = "http://" + ipaddressDev.getText() + ":8080/enable?ddns="+ ddns_uri;
+                    Log.d(TAG, "Sending DDNS URI Enable to Device: " + uri);
+                    mAdapter.add("Sending DDNS URI Enable to Device: " + uri, Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    startSendHttpRequestThread(uri);
+                }
             }
         });
         Button mqttbutton = (Button) findViewById(R.id.checkbox_mqtt);
@@ -119,6 +131,14 @@ public class notificationsActivity extends AppCompatActivity {
                 if (((CheckBox)v).isChecked()) {
                     ifttt = true;
                 } else ifttt = false;
+            }
+        });
+        Button ddnsbutton = (Button) findViewById(R.id.checkbox_ddns);
+        ddnsbutton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (((CheckBox)v).isChecked()) {
+                    ddns = true;
+                } else ddns = false;
             }
         });
 
@@ -177,10 +197,12 @@ public class notificationsActivity extends AppCompatActivity {
         EditText ifttt_tokenF = findViewById(R.id.ifttt_val);
         ifttt_token = (ifttt_tokenF).getText().toString();
 
-        Intent intent = new Intent();
-        Log.d(TAG, "Send mqtt token: " + mqtt_token);
-        intent.putExtra("mqtt_token", mqtt_token);
-        setResult(RESULT_OK, intent);
+        if (mqtt == true) {
+            Intent intent = new Intent();
+            Log.d(TAG, "Send mqtt token: " + mqtt_token);
+            intent.putExtra("mqtt_token", mqtt_token);
+            setResult(RESULT_OK, intent);
+        }
         finish();
     }
     /* Start a thread to send http request to web server use HttpURLConnection object. */
@@ -203,8 +225,8 @@ public class notificationsActivity extends AppCompatActivity {
                     // Set http request method to get.
                     httpConn.setRequestMethod("GET");
                     // Set connection timeout and read timeout value.
-                    httpConn.setConnectTimeout(10000);
-                    httpConn.setReadTimeout(10000);
+                    httpConn.setConnectTimeout(20000);
+                    httpConn.setReadTimeout(20000);
                     // Get input stream from web url connection.
                     InputStream inputStream = httpConn.getInputStream();
                     // Create input stream reader based on url connection input stream.
@@ -274,6 +296,7 @@ public class notificationsActivity extends AppCompatActivity {
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
                             mAdapter.add(responseText, Color.BLUE);
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                            /*
                             if (responseText.contains("WiFi")) {
                                 TextView wifiVal = findViewById(R.id.wifi_val);
                                 wifiVal.setText(responseText);
@@ -281,6 +304,7 @@ public class notificationsActivity extends AppCompatActivity {
                                 TextView httpVal = findViewById(R.id.http_val);
                                 httpVal.setText(responseText);
                             }
+                            */
                         }
                     }
                 }

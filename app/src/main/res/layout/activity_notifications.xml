@@ -124,6 +124,32 @@
                 android:background="#f4f4f4"
                 android:text="Enter IFTTT Token" />
         </TableRow>
+
+        <View android:layout_height="10dp" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <CheckBox
+                android:id="@+id/checkbox_ddns"
+                android:layout_width="0dp"
+                android:layout_height="25dp"
+                android:layout_weight="4"
+                android:textSize="15dp"
+                android:text="DDNS" />
+
+            <EditText
+                android:id="@+id/ddns_val"
+                android:layout_width="0dp"
+                android:layout_height="25dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="8"
+                android:textSize="20dp"
+                android:background="#f4f4f4"
+                android:text="aseemsethi.duckdns.org" />
+        </TableRow>
+
     </TableLayout>
 
     <TextView

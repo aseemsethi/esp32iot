@@ -77,6 +77,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //System.setProperty("http.keepAlive", "false");
+        //System.setProperty("http.maxConnections", "5");
+
+        IntentFilter filter1 = new IntentFilter("RestartMqtt");
+        registerReceiver(myReceiverMqtt, filter1);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -168,6 +173,19 @@ public class MainActivity extends AppCompatActivity
         mAdapter.add("Enable Menu -> Device Discovery and Menu -> Set Notifications", Color.BLUE);
         mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
 
+        // Read Device from file
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32configNode")));
+            String inputString;
+            while ((inputString = inputReader.readLine()) != null) {
+                deviceAddress = inputString;
+                Log.d(TAG, "Read Device Node from file: " + deviceAddress);
+                TextView textView = (TextView)findViewById(R.id.node);
+                textView.setText(deviceAddress);
+            }
+        } catch (IOException e) { e.printStackTrace();}
+
         initControls();
         //startMqtt();
         //Register BroadcastReceiver
@@ -178,30 +196,18 @@ public class MainActivity extends AppCompatActivity
         Intent serviceIntent = new Intent(context, mqttService.class);
         serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
         startForegroundService(serviceIntent);
-
-        // File Storage
-        FileOutputStream fos;
-        try {
-            fos = openFileOutput("esp32configNode", Context.MODE_PRIVATE);
-            //default mode is PRIVATE, can be APPEND etc.
-            fos.write("Aseem Sethi".getBytes());
-            fos.close();
-            Toast.makeText(getApplicationContext(), "esp32config" + " saved",
-                    Toast.LENGTH_LONG).show();
-        } catch (FileNotFoundException e) {e.printStackTrace();}
-        catch (IOException e) {e.printStackTrace();}
-
-        // Read config
-        try {
-            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                    openFileInput("esp32configNode")));
-            String inputString;
-            while ((inputString = inputReader.readLine()) != null) {
-                Toast.makeText(getApplicationContext(),inputString,
-                        Toast.LENGTH_LONG).show();
-            }
-        } catch (IOException e) { e.printStackTrace();}
     }
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private final BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "MqttService BroadcastReceiver: attempting to start mqttService");
+            Intent serviceIntent = new Intent(context, mqttService.class);
+            serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+            context.startForegroundService(serviceIntent);
+            }
+    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -494,6 +500,19 @@ public class MainActivity extends AppCompatActivity
                     } else {
                         textView.setText(address);
                         deviceAddress = address;
+                    }
+                    if (!deviceAddress.isEmpty()) {
+                        // Store Sensor in File
+                        FileOutputStream fos;
+                        try {
+                            fos = openFileOutput("esp32configNode", Context.MODE_PRIVATE);
+                            //default mode is PRIVATE, can be APPEND etc.
+                            fos.write(deviceAddress.getBytes());
+                            fos.write("\n".getBytes());
+                            Log.d(TAG, "Saving Device Node to file" + ":" + deviceAddress);
+                            fos.close();
+                        } catch (FileNotFoundException e) {e.printStackTrace();}
+                        catch (IOException e) {e.printStackTrace();}
                     }
 
                     // gServiceName is mDNS ServiceName

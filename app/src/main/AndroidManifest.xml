@@ -25,7 +25,6 @@
             android:enabled="true"
             android:process=":background"
             android:exported="false"></service>
-
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
