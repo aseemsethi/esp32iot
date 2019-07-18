@@ -10,11 +10,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity
 
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
         registerReceiver(myReceiverMqtt, filter1);
+        //turnOffDozeMode(getApplicationContext());
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -198,6 +202,20 @@ public class MainActivity extends AppCompatActivity
         startForegroundService(serviceIntent);
     }
 
+    public void turnOffDozeMode(Context context){  //you can use with or without passing context
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent();
+            String packageName = context.getPackageName();
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            if (pm.isIgnoringBatteryOptimizations(packageName)) // if you want to desable doze mode for this package
+                intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            else { // if you want to enable doze mode
+                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + packageName));
+            }
+            context.startActivity(intent);
+        }
+    }
     //The BroadcastReceiver that listens for bluetooth broadcasts
     private final BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
         @Override
@@ -434,6 +452,7 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, REQUEST_CODE_3);
         } else if (id == R.id.nav_sensor) {
             Intent intent = new Intent(this, setSensorActivity.class);
+            intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_4);
         } else if (id == R.id.nav_send) {
 
@@ -488,7 +507,7 @@ public class MainActivity extends AppCompatActivity
                     if (address == null || address.isEmpty()) {
                         Log.d(TAG, "No Device address set");
                         String domain = dataIntent.getStringExtra("DomainAddress");
-                        if (domain.isEmpty()) {
+                        if (domain == null || domain.isEmpty()) {
                             Log.d(TAG, "No Device Domain set");
                         } else {
                                 Log.d(TAG, "Device Domain set: " + domain);

@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:inputType="textPersonName"
-            android:text="Front Door" />
+            android:text="FrontDoor" />
 
         <EditText
             android:id="@+id/sensorTagT"

@@ -95,13 +95,19 @@ public class mqttService extends Service {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
+        String action;
+
         Log.d(TAG, "Started mqttService");
         AudioAttributes att = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build();
         Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        String action = intent.getAction();
+        if (intent == null) {
+            Log.d(TAG, "Intent is null..possible due to system restart");
+            action = MQTTMSG_ACTION;
+        } else
+            action = intent.getAction();
         Log.d(TAG,"ACTION: "+action);
         switch (action) {
             case MQTTMSG_ACTION:

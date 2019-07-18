@@ -55,7 +55,6 @@ public class notificationsActivity extends AppCompatActivity {
     String mqtt_token = "";
     String ifttt_token = "";
     String ddns_uri = "";
-    private final static int REQUEST_CODE_1 = 1;
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
     private Handler uiUpdater = null;
@@ -296,15 +295,6 @@ public class notificationsActivity extends AppCompatActivity {
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
                             mAdapter.add(responseText, Color.BLUE);
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                            /*
-                            if (responseText.contains("WiFi")) {
-                                TextView wifiVal = findViewById(R.id.wifi_val);
-                                wifiVal.setText(responseText);
-                            } else if (responseText.contains("HTTP")) {
-                                TextView httpVal = findViewById(R.id.http_val);
-                                httpVal.setText(responseText);
-                            }
-                            */
                         }
                     }
                 }

@@ -118,7 +118,7 @@ public class setMqttActivity extends AppCompatActivity {
     // This method will be invoked when user click android device Back menu at bottom.
     @Override
     public void onBackPressed() {
-        EditText mqtt_tokenF = findViewById(R.id.mqtt_val);
+        EditText mqtt_tokenF = findViewById(R.id.mqttServer_val);
         mqtt_token = (mqtt_tokenF).getText().toString();
 
         Intent intent = new Intent();
