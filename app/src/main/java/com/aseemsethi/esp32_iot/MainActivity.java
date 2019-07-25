@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_3 = 3; // for mqtt topic
     private final static int REQUEST_CODE_4 = 4; // for sensors
     private final static int REQUEST_CODE_5 = 5; // for notificationStatus
+    final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -81,12 +82,13 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //System.setProperty("http.keepAlive", "false");
-        //System.setProperty("http.maxConnections", "5");
 
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
         registerReceiver(myReceiverMqtt, filter1);
-        //turnOffDozeMode(getApplicationContext());
+
+        myReceiver = new MyReceiver();
+        IntentFilter filter2 = new IntentFilter(MQTTMSG_ACTION);
+        registerReceiver(myReceiver, filter2);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -208,9 +210,6 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
-        //Register BroadcastReceiver
-        //to receive event from our service
-        myReceiver = new MyReceiver();
 
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context, mqttService.class);
@@ -431,6 +430,15 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            if(deviceAddress.isEmpty()) {
+                mAdapter.add("Select an IOT Node first", Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                return true;
+            }
+            mAdapter.add("Requesting Config..", Color.BLUE);
+            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            String uri = "http://" + deviceAddress + ":8080/check?config=1";
+            startSendHttpRequestThread(uri);
             return true;
         }
 

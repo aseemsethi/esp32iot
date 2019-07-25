@@ -101,16 +101,9 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:layout_width="0dip"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1.5"
-                    android:text="Sensors" />
-
-                <Button
                     android:id="@+id/temp_b"
                     android:layout_width="0dip"
-                    android:layout_column="1"
+                    android:layout_column="0"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
@@ -119,16 +112,16 @@
                 <Button
                     android:id="@+id/dth_b"
                     android:layout_width="0dip"
-                    android:layout_column="2"
+                    android:layout_column="1"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
-                    android:text="DTH" />
+                    android:text="BLE" />
 
                 <Button
                     android:id="@+id/config_b"
                     android:layout_width="0dip"
-                    android:layout_column="3"
+                    android:layout_column="2"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
                     android:text="Config" />
