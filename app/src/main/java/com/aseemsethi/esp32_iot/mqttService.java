@@ -21,6 +21,10 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import static android.content.ContentValues.TAG;
 
 /*
@@ -113,6 +117,14 @@ public class mqttService extends Service {
                 intent1.putExtra("MQTTRCV", mqttMessage.toString());
                 sendBroadcast(intent1);
                 sendNotification(mqttMessage.toString());
+                FileOutputStream fos;
+                try {
+                    fos = openFileOutput("esp32Notifications", Context.MODE_APPEND);
+                    fos.write(mqttMessage.toString().getBytes());
+                    fos.write(":".getBytes());
+                    fos.close();
+                } catch (FileNotFoundException e) {e.printStackTrace();}
+                catch (IOException e) {e.printStackTrace();}
             }
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {

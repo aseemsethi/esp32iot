@@ -20,18 +20,15 @@
             android:id="@+id/nav_mqtt"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Set MQTT Topic" />
+
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Status">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="@string/menu_share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="@string/menu_send" />
+                android:id="@+id/nav_notifications"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="Notifications" />
         </menu>
     </item>
 

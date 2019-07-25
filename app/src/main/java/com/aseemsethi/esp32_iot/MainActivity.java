@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_2 = 2; // for push notifications
     private final static int REQUEST_CODE_3 = 3; // for mqtt topic
     private final static int REQUEST_CODE_4 = 4; // for sensors
+    private final static int REQUEST_CODE_5 = 5; // for notificationStatus
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -456,10 +457,11 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, setSensorActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_4);
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.nav_notifications) {
+            Intent intent = new Intent(this, notificationsStatusActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_5);
         }
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;

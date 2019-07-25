@@ -51,6 +51,11 @@
             android:parentActivityName=".setSensorActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".notificationsStatusActivity"
+            android:label="sensor"
+            android:parentActivityName=".notificationsStatusActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
