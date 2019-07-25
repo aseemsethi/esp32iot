@@ -126,12 +126,12 @@
                     android:text="DTH" />
 
                 <Button
-                    android:id="@+id/hal_b"
+                    android:id="@+id/config_b"
                     android:layout_width="0dip"
                     android:layout_column="3"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
-                    android:text="HAL" />
+                    android:text="Config" />
             </TableRow>
 
             <View android:layout_height="10dp" />

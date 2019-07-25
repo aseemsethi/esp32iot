@@ -71,14 +71,14 @@ public class mqttService extends Service {
                 mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
                     @Override
                     public void connectComplete(boolean b, String s) {
-                        Log.w(TAG,"mqttService Connected");
+                        Log.w(TAG,"mqttService - Connected");
                     }
                     @Override
                     public void connectionLost(Throwable throwable) { }
 
                     @Override
                     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                        Log.w(TAG, "MQTT Recvd: " + mqttMessage.toString());
+                        Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
                         Intent intent1 = new Intent();
                         intent1.setAction(MQTTMSG_ACTION);
                         intent1.putExtra("MQTTRCV", mqttMessage.toString());
@@ -94,15 +94,36 @@ public class mqttService extends Service {
         thread.start();
     }
 
+    public void runMyWork() {
+        mqttHelper = new MqttHelper(getApplicationContext());
+        Log.d(TAG, "mqttService thread..");
+        mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean b, String s) {
+                Log.w(TAG, "mqttService - Connected");
+            }
+            @Override
+            public void connectionLost(Throwable throwable) {
+            }
+            @Override
+            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+                Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
+                Intent intent1 = new Intent();
+                intent1.setAction(MQTTMSG_ACTION);
+                intent1.putExtra("MQTTRCV", mqttMessage.toString());
+                sendBroadcast(intent1);
+                sendNotification(mqttMessage.toString());
+            }
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+            }
+        });
+    }
+
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action;
 
         Log.d(TAG, "Started mqttService");
-        AudioAttributes att = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build();
-        Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         if (intent == null) {
             Log.d(TAG, "Intent is null..possible due to system restart");
             action = MQTTMSG_ACTION;
@@ -117,11 +138,10 @@ public class mqttService extends Service {
                         "my_channel",
                         NotificationManager.IMPORTANCE_LOW);
                 mChannel.enableLights(true);
-                mChannel.setSound(uri,att);
                 mChannel.setLightColor(Color.RED);
                 mNotificationManager.createNotificationChannel(mChannel);
                 enableNotification();
-                runMyTask();
+                runMyWork();
                 break;
             case MQTTSUBSCRIBE_ACTION:
                 mqtt_token = intent.getStringExtra("topic");
@@ -151,6 +171,7 @@ public class mqttService extends Service {
         Intent intent = new Intent(this, mqttService.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_menu_camera)
@@ -160,6 +181,7 @@ public class mqttService extends Service {
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setSound(defaultSoundUri)
                 .setChannelId(CHANNEL_ID)
                 .setAutoCancel(true);
 
@@ -176,6 +198,7 @@ public class mqttService extends Service {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_menu_camera)
@@ -184,7 +207,7 @@ public class mqttService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setSound(defaultSoundUri)
                 .setChannelId(CHANNEL_ID)
                 .setAutoCancel(true);
 

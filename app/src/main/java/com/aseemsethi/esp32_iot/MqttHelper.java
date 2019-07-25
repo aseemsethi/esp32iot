@@ -60,7 +60,7 @@ public class MqttHelper {
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
-        mqttConnectOptions.setKeepAliveInterval(20);
+        //mqttConnectOptions.setKeepAliveInterval(20);
         //mqttConnectOptions.setUserName(username);
         //mqttConnectOptions.setPassword(password.toCharArray());
 

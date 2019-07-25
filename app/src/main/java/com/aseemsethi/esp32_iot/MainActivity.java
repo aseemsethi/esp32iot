@@ -158,6 +158,22 @@ public class MainActivity extends AppCompatActivity
                 startSendHttpRequestThread(uri);
             }
         });
+        final Button cfgb = findViewById(R.id.config_b);
+        cfgb.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                mAdapter.add("Requesting Config..", Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                String uri = "http://" + deviceAddress + ":8080/check?config=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
         final Button clear = findViewById(R.id.clear_b);
         clear.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -191,7 +207,6 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
-        //startMqtt();
         //Register BroadcastReceiver
         //to receive event from our service
         myReceiver = new MyReceiver();
@@ -202,20 +217,6 @@ public class MainActivity extends AppCompatActivity
         startForegroundService(serviceIntent);
     }
 
-    public void turnOffDozeMode(Context context){  //you can use with or without passing context
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent();
-            String packageName = context.getPackageName();
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            if (pm.isIgnoringBatteryOptimizations(packageName)) // if you want to desable doze mode for this package
-                intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-            else { // if you want to enable doze mode
-                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                intent.setData(Uri.parse("package:" + packageName));
-            }
-            context.startActivity(intent);
-        }
-    }
     //The BroadcastReceiver that listens for bluetooth broadcasts
     private final BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
         @Override
@@ -383,7 +384,8 @@ public class MainActivity extends AppCompatActivity
     }
     public void updateView(String responseText) {
         Log.d(TAG, "Updating view");
-        if (responseText.contains("WiFi")) {
+        if (responseText.contains("Config")) {
+        } else if (responseText.contains("WiFi")) {
             TextView wifiVal = findViewById(R.id.wifi_val);
             wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
             wifiVal.setText(responseText);
@@ -461,34 +463,6 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    private void startMqtt(){
-        mqttHelper = new MqttHelper(getApplicationContext());
-        mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
-            @Override
-            public void connectComplete(boolean b, String s) {
-                Log.w(TAG,"Connected");
-            }
-
-            @Override
-            public void connectionLost(Throwable throwable) {
-
-            }
-
-            @Override
-            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                Log.w(TAG, mqttMessage.toString());
-                mAdapter.add(mqttMessage.toString(), Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                updateView(mqttMessage.toString());
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-
-            }
-        });
     }
 
     @Override

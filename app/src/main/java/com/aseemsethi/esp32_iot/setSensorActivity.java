@@ -71,24 +71,25 @@ public class setSensorActivity extends AppCompatActivity {
                 String sensorTagS = (sensorTag).getText().toString();
 
                 // Store Sensor in File
-                FileOutputStream fos;
-                try {
+                // FileOutputStream fos;
+                //try {
+                    /*
                     fos = openFileOutput("esp32configTags", Context.MODE_APPEND);
-                    //default mode is PRIVATE, can be APPEND etc.
                     fos.write(sensorNameS.getBytes());
                     fos.write(":".getBytes());
                     fos.write(sensorTagS.getBytes());
                     fos.write("\n".getBytes());
                     Log.d(TAG, "Saving Sensor to file" + sensorNameS + ":" + sensorTagS);
                     fos.close();
+                    */
                     mAdapter.add(sensorNameS + ":" + sensorTagS, Color.BLUE);
                     mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     String uri = "http://" + ipaddressDevice + ":8080/enable?ble="+
                             sensorNameS + ":" + sensorTagS;
                     Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
                     startSendHttpRequestThread(uri);
-                } catch (FileNotFoundException e) {e.printStackTrace();}
-                catch (IOException e) {e.printStackTrace();}
+                //} catch (FileNotFoundException e) {e.printStackTrace();}
+                //catch (IOException e) {e.printStackTrace();}
 
                 /* Intent intent = new Intent();
                 Log.d(TAG, "Send Sensor info: " + sensorNameS + " : " + sensorTagS);
@@ -105,7 +106,7 @@ public class setSensorActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
         initControls();
 
-        // Read config
+        /* Read config
         try {
             BufferedReader inputReader = new BufferedReader(new InputStreamReader(
                     openFileInput("esp32configTags")));
@@ -114,11 +115,12 @@ public class setSensorActivity extends AppCompatActivity {
                 Log.d(TAG, "Reading Sensor from file");
                 mAdapter.add(inputString, Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + ipaddressDevice + ":8080/enable?ble="+ inputString;
-                Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
+                //String uri = "http://" + ipaddressDevice + ":8080/enable?ble="+ inputString;
+                //Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
                 //startSendHttpRequestThread(uri);
             }
         } catch (IOException e) { e.printStackTrace();}
+        */
     }
 
     @Override
