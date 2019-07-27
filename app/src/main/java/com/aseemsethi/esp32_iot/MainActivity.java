@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //The BroadcastReceiver that listens for bluetooth broadcasts
-    private final BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
+    private BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "MqttService BroadcastReceiver: attempting to start mqttService");
@@ -561,6 +561,36 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "OnPause");
+        // Unregister since the activity is not visible
+        if (myReceiverMqtt != null) {
+            unregisterReceiver(myReceiverMqtt);
+            Log.d(TAG, "unregister myReceiverMqtt");
+            myReceiverMqtt = null;
+        }
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
+            myReceiver = null;
+        }
+        super.onPause();
+    }
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "OnDestroy");
+        if (myReceiverMqtt != null) {
+            unregisterReceiver(myReceiverMqtt);
+            Log.d(TAG, "unregister myReceiverMqtt");
+            myReceiverMqtt = null;
+        }
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
+            myReceiver = null;
+        }
+        super.onDestroy();
     }
 
     private class MyReceiver extends BroadcastReceiver {
