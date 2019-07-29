@@ -4,6 +4,7 @@
     android:targetSandboxVersion="1">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -12,6 +13,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -54,6 +56,11 @@
             android:name=".notificationsStatusActivity"
             android:label="sensor"
             android:parentActivityName=".notificationsStatusActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".espTouchActivity"
+            android:label="espTouch"
+            android:parentActivityName=".espTouchActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainActivity"

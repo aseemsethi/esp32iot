@@ -4,6 +4,10 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_config"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Device Config - espTouch" />
          <item
             android:id="@+id/nav_mdns"
             android:icon="@drawable/ic_menu_manage"

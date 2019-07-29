@@ -55,6 +55,11 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+// How to import esptouch module.
+// File --> New --> Import Module - point this to the esptouch directory locally downloaded
+// from https://github.com/EspressifApp/EsptouchForAndroid
+// In gradle file add a line - implementation project(':esptouch')
+// In settings.gradle - modify to : include ':app', ':esptouch'
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     final String TAG = "ESP32IOT MainActivity";
@@ -63,6 +68,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_3 = 3; // for mqtt topic
     private final static int REQUEST_CODE_4 = 4; // for sensors
     private final static int REQUEST_CODE_5 = 5; // for notificationStatus
+    private final static int REQUEST_CODE_6 = 6; // for esptouch
     final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
 
     private static final int REQUEST_WIFI = 1;
@@ -451,7 +457,10 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_mdns) {
+        if (id == R.id.nav_config) {
+            Intent intent = new Intent(this, espTouchActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_6);
+        } else if (id == R.id.nav_mdns) {
             Intent intent = new Intent(this, mdnsActivity.class);
             startActivityForResult(intent, REQUEST_CODE_1);
         } else if (id == R.id.nav_notify) {
