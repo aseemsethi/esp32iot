@@ -56,20 +56,6 @@ public class mqttService extends Service {
         final Thread thread = new Thread() {
             @Override
             public void run() {
-                /*
-                try {
-                    int count=0;
-                    while (true) {
-                        Log.d(TAG, "In MQTT thread");
-                        Intent intent1 = new Intent();
-                        intent1.setAction(MQTTMSG_ACTION);
-                        intent1.putExtra("MQTTRCV", "MQTT Msg received");
-                        sendBroadcast(intent1);
-                        Thread.sleep(2000);
-                        sendNotification();
-                        if (++count > 1) break;
-                    }
-                } catch (InterruptedException e) {} */
                 mqttHelper = new MqttHelper(getApplicationContext());
                 Log.d(TAG, "mqttService thread..");
                 mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
@@ -148,7 +134,7 @@ public class mqttService extends Service {
                 mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
                 NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
                         "my_channel",
-                        NotificationManager.IMPORTANCE_LOW);
+                        NotificationManager.IMPORTANCE_HIGH);
                 mChannel.enableLights(true);
                 mChannel.setLightColor(Color.RED);
                 mNotificationManager.createNotificationChannel(mChannel);
@@ -215,7 +201,9 @@ public class mqttService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_menu_camera)
                 .setContentTitle("Security Notification")
-                .setContentText(msg)
+                //.setContentText(msg)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(msg))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)

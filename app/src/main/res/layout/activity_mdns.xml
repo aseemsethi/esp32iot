@@ -7,30 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".mdnsActivity">
 
-     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-         android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/selectB"
-            android:layout_width="wrap_content"
-            android:textColor="#672edf"
-            android:textStyle="bold|italic"
-            android:paddingHorizontal="10dp"
-            android:layout_height="25dp"
-            android:background="@drawable/rounded_corner"
-            android:text="Select By - Domain Name or Search" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
-        android:layout_height="3dp"
-        android:background="@android:color/holo_blue_light"/>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,11 +32,19 @@
             android:inputType="textPersonName" />
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="3dp"
+        android:background="@android:color/holo_blue_light"/>
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <TextView
@@ -68,6 +52,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:background="@drawable/my_border"
+            android:textSize="16dp"
             android:inputType="textPersonName"
             android:text="My Domain:" />
 
@@ -76,19 +61,28 @@
             android:layout_width="0dp"
             android:layout_weight="2"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textSize="16sp"
             android:text="aseemsethi.duckdns.org"
             android:inputType="textPersonName" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/setmyDomain"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="25dp"
-            android:textColor="#672edf"
-            android:textStyle="bold|italic"
-            android:paddingHorizontal="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:background="@drawable/rounded_corner"
-            android:text="Subscribe" />
+            android:paddingHorizontal="10dp"
+            android:text="Select Device by DNS Name"
+            android:textColor="#672edf"
+            android:textStyle="bold|italic" />
     </LinearLayout>
 
     <View
@@ -112,7 +106,7 @@
             android:textStyle="bold|italic"
             android:paddingHorizontal="10dp"
             android:background="@drawable/rounded_corner"
-            android:text="Start Search" />
+            android:text="Select Device by Search" />
     </LinearLayout>
 
     <TextView
@@ -139,6 +133,13 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
     </android.support.v7.widget.RecyclerView>
 
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_marginTop="30dp"
+        android:layout_height="3dp"
+        android:background="@android:color/holo_blue_light"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -154,7 +155,7 @@
             android:textStyle="bold|italic"
             android:paddingHorizontal="10dp"
             android:background="@drawable/rounded_corner"
-            android:text="Clear Config" />
+            android:text="Clear Device Config" />
     </LinearLayout>
 
 </LinearLayout>
