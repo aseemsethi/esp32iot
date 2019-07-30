@@ -108,13 +108,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if(deviceAddress.isEmpty()) {
-                    mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
                 v.startAnimation(buttonClick);
-                mAdapter.add("Requesting WiFi Status..", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Requesting WiFi Status..", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?wifi=1";
                 startSendHttpRequestThread(uri);
             }
@@ -124,13 +124,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if(deviceAddress.isEmpty()) {
-                    mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
                 v.startAnimation(buttonClick);
-                mAdapter.add("Requesting HTTP Status..", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Requesting HTTP Status..", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?http=1";
                 startSendHttpRequestThread(uri);
             }
@@ -140,13 +140,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if(deviceAddress.isEmpty()) {
-                    mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
                 v.startAnimation(buttonClick);
-                mAdapter.add("Requesting MQTT Status..", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Requesting MQTT Status..", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?mqtt=1";
                 startSendHttpRequestThread(uri);
             }
@@ -156,13 +156,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if(deviceAddress.isEmpty()) {
-                    mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
                 v.startAnimation(buttonClick);
-                mAdapter.add("Requesting Temperature Status..", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Requesting Temperature Status..", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?temp=1";
                 startSendHttpRequestThread(uri);
             }
@@ -172,17 +172,18 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if(deviceAddress.isEmpty()) {
-                    mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
                 v.startAnimation(buttonClick);
-                mAdapter.add("Requesting Config..", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Requesting Config..", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?config=1";
                 startSendHttpRequestThread(uri);
             }
         });
+        /*
         final Button clear = findViewById(R.id.clear_b);
         clear.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -201,6 +202,7 @@ public class MainActivity extends AppCompatActivity
         mAdapter.add("To Start Monitoring:", Color.BLUE);
         mAdapter.add("Enable Menu -> Device Discovery and Menu -> Set Notifications", Color.BLUE);
         mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+        */
 
         // Read Device from file
         try {
@@ -379,8 +381,8 @@ public class MainActivity extends AppCompatActivity
                         Bundle bundle = msg.getData();
                         if (bundle != null) {
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
-                            mAdapter.add(responseText, Color.BLUE);
-                            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                            //mAdapter.add(responseText, Color.BLUE);
+                            //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                             updateView(responseText);
                         }
                     }
@@ -391,6 +393,9 @@ public class MainActivity extends AppCompatActivity
     public void updateView(String responseText) {
         Log.d(TAG, "Updating view");
         if (responseText.contains("Config")) {
+            TextView wifiVal = findViewById(R.id.config_val);
+            wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
+            wifiVal.setText(responseText);
         } else if (responseText.contains("WiFi")) {
             TextView wifiVal = findViewById(R.id.wifi_val);
             wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
@@ -437,12 +442,12 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             if(deviceAddress.isEmpty()) {
-                mAdapter.add("Select an IOT Node first", Color.BLUE);
-                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 return true;
             }
-            mAdapter.add("Requesting Config..", Color.BLUE);
-            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            //mAdapter.add("Requesting Config..", Color.BLUE);
+            //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
             String uri = "http://" + deviceAddress + ":8080/check?config=1";
             startSendHttpRequestThread(uri);
             return true;
@@ -565,8 +570,8 @@ public class MainActivity extends AppCompatActivity
                         return;
                     }
                     Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag);
-                    mAdapter.add("Sensor Added: " + sensorName + " : " + sensorTag, Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    //mAdapter.add("Sensor Added: " + sensorName + " : " + sensorTag, Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 }
                 break;
         }
@@ -607,10 +612,11 @@ public class MainActivity extends AppCompatActivity
         public void onReceive(Context arg0, Intent arg1) {
             String msg = arg1.getStringExtra("MQTTRCV");
             Log.d(TAG, "Recvd from Service: " + msg);
-            Toast.makeText(getApplicationContext(),
+            /*Toast.makeText(getApplicationContext(),
            "Broadcast Rcv!\n" + msg, Toast.LENGTH_LONG).show();
             mAdapter.add(msg, Color.BLUE);
             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            */
             updateView(msg);
         }
 

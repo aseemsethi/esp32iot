@@ -12,125 +12,131 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
+
+    <TableLayout
+        android:id="@+id/table1"
+        android:layout_width="393dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="50dp"
+        android:background="#ECEFF1"
+        android:padding="0dp"
+        android:shrinkColumns="*"
+        android:stretchColumns="*">
+
+        <TableRow
+            android:id="@+id/table_layout_row_4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/node"
+                android:layout_width="0dip"
+                android:layout_height="25dp"
+                android:layout_column="0"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_heading"
+                android:paddingHorizontal="10dp"
+                android:text="Node ID" />
+        </TableRow>
+
+        <View android:layout_height="20dp" />
+
+        <TableRow
+            android:id="@+id/table_layout_row_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/wifi_b"
+                android:layout_width="0dip"
+                android:layout_column="0"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_heading"
+                android:text="WiFi" />
+
+            <Button
+                android:id="@+id/http_b"
+                android:layout_width="0dip"
+                android:layout_column="1"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_heading"
+                android:text="HTTP" />
+
+            <Button
+                android:id="@+id/mqtt_b"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_heading"
+                android:text="MQTT" />
+        </TableRow>
+
+        <View android:layout_height="10dp" />
+
+        <View
+            android:layout_height="2dp"
+            android:background="@color/colorPrimary" />
+
+        <View android:layout_height="10dp" />
+
+        <TableRow
+            android:id="@+id/table_layout_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/temp_b"
+                android:layout_width="0dip"
+                android:layout_column="0"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Temp" />
+
+            <Button
+                android:id="@+id/dth_b"
+                android:layout_width="0dip"
+                android:layout_column="1"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="BLE" />
+
+            <Button
+                android:id="@+id/config_b"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Config" />
+        </TableRow>
+
+        <View android:layout_height="10dp" />
+
+        <View
+            android:layout_height="2dp"
+            android:background="@color/colorPrimary" />
+
+    </TableLayout>
+
     <ScrollView
         android:id="@+id/scrollView1"
         android:paddingBottom="10dp"
         android:layout_width="match_parent"
+        android:layout_below="@id/table1"
         android:layout_height="match_parent">
-
         <TableLayout
-            android:id="@+id/table1"
+            android:id="@+id/table2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="50dp"
             android:background="#ECEFF1"
-            android:padding="0dp"
             android:shrinkColumns="*"
             android:stretchColumns="*">
-
-            <TableRow
-                android:id="@+id/table_layout_row_4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <Button
-                    android:id="@+id/node"
-                    android:layout_width="0dip"
-                    android:layout_height="25dp"
-                    android:layout_marginHorizontal="10dp"
-                    android:paddingHorizontal="10dp"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner_heading"
-                    android:text="Node ID" />
-            </TableRow>
-
-            <View android:layout_height="10dp" />
-
-            <TableRow
-                android:id="@+id/table_layout_row_1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Button
-                    android:layout_width="0dip"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1.5"
-                    android:text="Services" />
-
-                <Button
-                    android:id="@+id/wifi_b"
-                    android:layout_width="0dip"
-                    android:layout_column="1"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="WiFi" />
-
-                <Button
-                    android:id="@+id/http_b"
-                    android:layout_width="0dip"
-                    android:layout_column="2"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="HTTP" />
-
-                <Button
-                    android:id="@+id/mqtt_b"
-                    android:layout_width="0dip"
-                    android:layout_column="3"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="MQTT" />
-            </TableRow>
-
-            <View android:layout_height="5dp" />
-
-            <View android:layout_height="10dp" />
-            <View
-                android:layout_height="2dp"
-                android:background="@color/colorPrimary" />
-            <View android:layout_height="10dp" />
-
-            <TableRow
-                android:id="@+id/table_layout_row_3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Button
-                    android:id="@+id/temp_b"
-                    android:layout_width="0dip"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="Temp" />
-
-                <Button
-                    android:id="@+id/dth_b"
-                    android:layout_width="0dip"
-                    android:layout_column="1"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="BLE" />
-
-                <Button
-                    android:id="@+id/config_b"
-                    android:layout_width="0dip"
-                    android:layout_column="2"
-                    android:layout_weight="1"
-                    android:background="@drawable/rounded_corner"
-                    android:text="Config" />
-            </TableRow>
-
-            <View android:layout_height="10dp" />
-            <View android:layout_height="2dp"
-                android:background="@color/colorPrimary" />
-            <View android:layout_height="10dp" />
 
             <TableRow
                 android:id="@+id/table_layout_row_5"
@@ -139,28 +145,25 @@
 
                 <TextView
                     android:id="@+id/mdns_val"
-                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_column="0"
                     android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:background="#f4f4f4"
+                    android:textColor="@color/colorPrimary"
                     android:text="mDNS Name" />
-
+            </TableRow>
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
                 <TextView
                     android:id="@+id/wifi_val"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_column="1"
-                    android:layout_weight="1.5"
-                    android:background="#f4f4f4"
+                    android:background="#f5e8f3"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorPrimary"
                     android:text="WiFi SSID" />
             </TableRow>
 
-            <View android:layout_height="5dp" />
-
             <TableRow
-                android:id="@+id/table_layout_row_6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -168,76 +171,71 @@
                     android:id="@+id/temp_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:background="#f5e8f3"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorPrimary"
                     android:text="Temperature" />
-
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
                 <TextView
                     android:id="@+id/http_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_column="1"
-                    android:layout_weight="1.5"
                     android:background="#f5e8f3"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorPrimary"
                     android:text="HTTP" />
             </TableRow>
 
             <TableRow
-                android:id="@+id/table_layout_row_7"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
-                <TextView
-                    android:id="@+id/xxx_val"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:text="XXX" />
-
                 <TextView
                     android:id="@+id/mqtt_val"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_column="1"
-                    android:layout_weight="1.5"
-                    android:background="#f4f4f4"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorPrimary"
                     android:text="MQTT" />
             </TableRow>
 
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/config_val"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="#f5e8f3"
+                    android:textColor="@color/colorPrimary"
+                    android:text="Config" />
+            </TableRow>
+
+            <!--
             <View android:layout_height="10dp" />
             <View
                 android:layout_height="2dp"
                 android:background="@color/colorPrimary" />
             <View android:layout_height="10dp" />
-
             <TableRow
                 android:id="@+id/table_layout_row_8"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/logs"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:background="#f5e8f3"
-                    android:text="MQTT/HTTP Logs..." />
                 <Button
                     android:id="@+id/clear_b"
                     android:layout_width="0dip"
-                    android:layout_column="2"
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corner"
                     android:layout_height="25dp"
                     android:text="Clear Logs" />
             </TableRow>
+
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/main_recycler_view"
@@ -253,6 +251,7 @@
                 android:scrollbars="vertical"
                 android:verticalScrollbarPosition="right"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"></android.support.v7.widget.RecyclerView>
+             -->
         </TableLayout>
 
 
