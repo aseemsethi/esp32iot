@@ -69,10 +69,10 @@ public class mqttService extends Service {
                     @Override
                     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                         Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
-                        Intent intent1 = new Intent();
-                        intent1.setAction(MQTTMSG_ACTION);
-                        intent1.putExtra("MQTTRCV", mqttMessage.toString());
-                        sendBroadcast(intent1);
+                        //Intent intent1 = new Intent();
+                        //intent1.setAction(MQTTMSG_ACTION);
+                        //intent1.putExtra("MQTTRCV", mqttMessage.toString());
+                        //sendBroadcast(intent1);
                         sendNotification(mqttMessage.toString());
                     }
 
@@ -98,10 +98,10 @@ public class mqttService extends Service {
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
-                Intent intent1 = new Intent();
-                intent1.setAction(MQTTMSG_ACTION);
-                intent1.putExtra("MQTTRCV", mqttMessage.toString());
-                sendBroadcast(intent1);
+                //Intent intent1 = new Intent();
+                //intent1.setAction(MQTTMSG_ACTION);
+                //intent1.putExtra("MQTTRCV", mqttMessage.toString());
+                //sendBroadcast(intent1);
                 sendNotification(mqttMessage.toString());
                 FileOutputStream fos;
                 try {

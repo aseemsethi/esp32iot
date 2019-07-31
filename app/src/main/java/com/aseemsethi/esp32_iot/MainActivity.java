@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_4 = 4; // for sensors
     private final static int REQUEST_CODE_5 = 5; // for notificationStatus
     private final static int REQUEST_CODE_6 = 6; // for esptouch
-    final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
+    //final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
     MqttHelper mqttHelper;
     String mqtt_token = "";
-    MyReceiver myReceiver;
+    //MyReceiver myReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,9 +92,9 @@ public class MainActivity extends AppCompatActivity
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
         registerReceiver(myReceiverMqtt, filter1);
 
-        myReceiver = new MyReceiver();
-        IntentFilter filter2 = new IntentFilter(MQTTMSG_ACTION);
-        registerReceiver(myReceiver, filter2);
+        //myReceiver = new MyReceiver();
+        //IntentFilter filter2 = new IntentFilter(MQTTMSG_ACTION);
+        //registerReceiver(myReceiver, filter2);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -222,6 +222,7 @@ public class MainActivity extends AppCompatActivity
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context, mqttService.class);
         serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+        Log.d(TAG, "Starting mqttService");
         startForegroundService(serviceIntent);
     }
 
@@ -513,6 +514,8 @@ public class MainActivity extends AppCompatActivity
                                 textView.setText(domain);
                                 // DNS Resolve this address now and set it to deviceAddress
                                 deviceAddress = domain;
+                                textView1.setText(deviceAddress);
+                                textView1.setTypeface(null, Typeface.BOLD_ITALIC);
                         }
                     } else {
                         textView.setText(address);
@@ -586,10 +589,10 @@ public class MainActivity extends AppCompatActivity
             Log.d(TAG, "unregister myReceiverMqtt");
             myReceiverMqtt = null;
         }
-        if (myReceiver != null) {
+        /*if (myReceiver != null) {
             unregisterReceiver(myReceiver);
             myReceiver = null;
-        }
+        } */
         super.onPause();
     }
     @Override
@@ -600,25 +603,20 @@ public class MainActivity extends AppCompatActivity
             Log.d(TAG, "unregister myReceiverMqtt");
             myReceiverMqtt = null;
         }
-        if (myReceiver != null) {
+        /*if (myReceiver != null) {
             unregisterReceiver(myReceiver);
             myReceiver = null;
-        }
+        } */
         super.onDestroy();
     }
 
-    private class MyReceiver extends BroadcastReceiver {
+
+    /* private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context arg0, Intent arg1) {
             String msg = arg1.getStringExtra("MQTTRCV");
             Log.d(TAG, "Recvd from Service: " + msg);
-            /*Toast.makeText(getApplicationContext(),
-           "Broadcast Rcv!\n" + msg, Toast.LENGTH_LONG).show();
-            mAdapter.add(msg, Color.BLUE);
-            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-            */
             updateView(msg);
         }
-
-    }
+    } */
 }
