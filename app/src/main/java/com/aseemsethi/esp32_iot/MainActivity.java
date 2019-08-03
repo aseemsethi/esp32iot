@@ -1,6 +1,7 @@
 package com.aseemsethi.esp32_iot;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     MqttHelper mqttHelper;
     String mqtt_token = "";
     //MyReceiver myReceiver;
+    BroadcastReceiver myReceiverMqtt = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +90,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        IntentFilter filter1 = new IntentFilter("RestartMqtt");
-        registerReceiver(myReceiverMqtt, filter1);
 
         //myReceiver = new MyReceiver();
         //IntentFilter filter2 = new IntentFilter(MQTTMSG_ACTION);
@@ -218,24 +217,15 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
-
+        if (isMyServiceRunning()) {
+            Log.d(TAG, "MainActivity onCreate: service is already running"); return;
+        }
         Context context = getApplicationContext();
         Intent serviceIntent = new Intent(context, mqttService.class);
         serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
         Log.d(TAG, "Starting mqttService");
         startForegroundService(serviceIntent);
     }
-
-    //The BroadcastReceiver that listens for bluetooth broadcasts
-    private BroadcastReceiver myReceiverMqtt = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "MqttService BroadcastReceiver: attempting to start mqttService");
-            Intent serviceIntent = new Intent(context, mqttService.class);
-            serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
-            context.startForegroundService(serviceIntent);
-            }
-    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -584,10 +574,22 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         Log.d(TAG, "OnPause");
         // Unregister since the activity is not visible
-        if (myReceiverMqtt != null) {
+        /* if (myReceiverMqtt != null) {
             unregisterReceiver(myReceiverMqtt);
             Log.d(TAG, "unregister myReceiverMqtt");
             myReceiverMqtt = null;
+        } */
+        try {
+            Log.d(TAG, "unregister myReceiverMqtt");
+            unregisterReceiver(myReceiverMqtt);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+                Log.w(TAG,"Tried to unregister the reciver when it's not registered");
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
         }
         /*if (myReceiver != null) {
             unregisterReceiver(myReceiver);
@@ -597,11 +599,17 @@ public class MainActivity extends AppCompatActivity
     }
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "OnDestroy");
-        if (myReceiverMqtt != null) {
+        try {
+            Log.d(TAG, "onDestroy unregister myReceiverMqtt");
             unregisterReceiver(myReceiverMqtt);
-            Log.d(TAG, "unregister myReceiverMqtt");
-            myReceiverMqtt = null;
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+                Log.w(TAG,"Tried to unregister the reciver when it's not registered");
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
         }
         /*if (myReceiver != null) {
             unregisterReceiver(myReceiver);
@@ -610,7 +618,36 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
 
+        IntentFilter filter1 = new IntentFilter("RestartMqtt");
+        registerReceiver(myReceiverMqtt, filter1);
+        //The BroadcastReceiver that listens for bluetooth broadcasts
+        myReceiverMqtt = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (isMyServiceRunning()) {
+                    Log.d(TAG, "mqttService BroadcastReceiver: is already running"); return;
+                }
+                Log.d(TAG, "mqttService BroadcastReceiver: attempting to start mqttService");
+                Intent serviceIntent = new Intent(context, mqttService.class);
+                serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+                context.startForegroundService(serviceIntent);
+            }
+        };
+    }
+
+    private boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (mqttService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
     /* private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context arg0, Intent arg1) {

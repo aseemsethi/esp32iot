@@ -76,8 +76,8 @@ public class MqttHelper {
                     disconnectedBufferOptions.setPersistBuffer(false);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
-                    Log.d(TAG, "Subscribing to: " + subscriptionTopic);
-                    subscribeToTopic();
+                    //Log.d(TAG, "Subscribing to: " + subscriptionTopic);
+                    //subscribeToTopic();
                 }
 
                 @Override
@@ -115,7 +115,7 @@ public class MqttHelper {
 
     public void subscribeToTopic(final String subscriptionTopic) {
         try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
+            mqttAndroidClient.subscribe(subscriptionTopic, 2, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     Log.w(TAG,"Subscribed to: " + subscriptionTopic);
@@ -129,6 +129,16 @@ public class MqttHelper {
 
         } catch (MqttException ex) {
             System.err.println("Exception whilst subscribing");
+            ex.printStackTrace();
+        }
+    }
+
+    public void unsubscribeToTopic(final String subscriptionTopic) {
+        Log.d(TAG, "Unsubscribe: " + subscriptionTopic);
+        try {
+            mqttAndroidClient.unsubscribe(subscriptionTopic);
+        } catch (MqttException ex) {
+            System.err.println("Exception whilst unsubscribing");
             ex.printStackTrace();
         }
     }

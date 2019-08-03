@@ -45,6 +45,7 @@ public class mqttService extends Service {
     String CHANNEL_ID = "my_channel";
     MqttHelper mqttHelper;
     String mqtt_token = "";
+    static int counter = 0;
 
     @Nullable
     @Override
@@ -98,6 +99,7 @@ public class mqttService extends Service {
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
+                counter++;
                 //Intent intent1 = new Intent();
                 //intent1.setAction(MQTTMSG_ACTION);
                 //intent1.putExtra("MQTTRCV", mqttMessage.toString());
@@ -105,8 +107,9 @@ public class mqttService extends Service {
                 sendNotification(mqttMessage.toString());
                 FileOutputStream fos;
                 try {
+                    String msg = mqttMessage.toString() + ":" + counter + "\n";
                     fos = openFileOutput("esp32Notifications", Context.MODE_APPEND);
-                    fos.write(mqttMessage.toString().getBytes());
+                    fos.write(msg.getBytes());
                     fos.write(":".getBytes());
                     fos.close();
                 } catch (FileNotFoundException e) {e.printStackTrace();}
@@ -151,6 +154,7 @@ public class mqttService extends Service {
     @Override public void onTaskRemoved(Intent rootIntent) {
         Log.d(TAG, "Task Removed mqttService");
         super.onTaskRemoved(rootIntent);
+        //mqttHelper.unsubscribeToTopic(mqtt_token);
 
         Log.d(TAG, "onTaskRemoved...attempting to Start mqttService..");
         sendBroadcast(new Intent("RestartMqtt"));
@@ -158,6 +162,8 @@ public class mqttService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy...attempting to restart mqttService");
+        //
+        // mqttHelper.unsubscribeToTopic(mqtt_token);
         super.onDestroy();
         sendBroadcast(new Intent("RestartMqtt"));
     }
@@ -200,10 +206,10 @@ public class mqttService extends Service {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_menu_camera)
-                .setContentTitle("Security Notification")
+                .setContentTitle("Security Notification: " + counter)
                 //.setContentText(msg)
                 .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(msg))
+                        .bigText(msg + counter))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent)
