@@ -6,8 +6,8 @@ android {
         applicationId "com.aseemsethi.esp32_iot"
         minSdkVersion 26
         targetSdkVersion 28
-        versionCode 8
-        versionName "8.0"
+        versionCode 9
+        versionName "9.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

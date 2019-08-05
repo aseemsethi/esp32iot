@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_4 = 4; // for sensors
     private final static int REQUEST_CODE_5 = 5; // for notificationStatus
     private final static int REQUEST_CODE_6 = 6; // for esptouch
+    private final static int REQUEST_CODE_7 = 7; // for logs
     //final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
 
     private static final int REQUEST_WIFI = 1;
@@ -180,6 +181,66 @@ public class MainActivity extends AppCompatActivity
                 //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                 String uri = "http://" + deviceAddress + ":8080/check?config=1";
                 startSendHttpRequestThread(uri);
+            }
+        });
+        final Button healthB = findViewById(R.id.health_b);
+        healthB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                Log.d(TAG, "Pinging Server: " + deviceAddress);
+                pingServer(deviceAddress);
+            }
+        });
+        final Button memB = findViewById(R.id.mem_b);
+        memB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                String uri = "http://" + deviceAddress + ":8080/check?mem=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
+        final Button clearB = findViewById(R.id.clear_b);
+        clearB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (deviceAddress.isEmpty()) {
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                TextView mDNS = findViewById(R.id.mdns_val);
+                mDNS.setTypeface(null, Typeface.BOLD_ITALIC);
+                mDNS.setText("mDNS Name");
+                if (deviceAddress != null)
+                    mDNS.setText(deviceAddress);
+                v.startAnimation(buttonClick);
+                TextView wifiVal = findViewById(R.id.config_val);
+                wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
+                wifiVal.setText("Config/Status: ");
+                TextView wifiVal1 = findViewById(R.id.wifi_val);
+                wifiVal1.setTypeface(null, Typeface.BOLD_ITALIC);
+                wifiVal1.setText("WiFi: ");
+                TextView httpVal = findViewById(R.id.http_val);
+                httpVal.setText("HTTP: ");
+                httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
+                TextView mqttVal = findViewById(R.id.mqtt_val);
+                mqttVal.setText("MQTT: ");
+                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
+                TextView mqttVal1 = findViewById(R.id.temp_val);
+                mqttVal1.setText("Temp: ");
+                mqttVal1.setTypeface(null, Typeface.BOLD_ITALIC);
             }
         });
         /*
@@ -384,9 +445,9 @@ public class MainActivity extends AppCompatActivity
     public void updateView(String responseText) {
         Log.d(TAG, "Updating view");
         if (responseText.contains("Config")) {
-            TextView wifiVal = findViewById(R.id.config_val);
-            wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
-            wifiVal.setText(responseText);
+            TextView c1 = findViewById(R.id.config_val);
+            c1.setTypeface(null, Typeface.BOLD_ITALIC);
+            c1.setText(responseText);
         } else if (responseText.contains("WiFi")) {
             TextView wifiVal = findViewById(R.id.wifi_val);
             wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
@@ -403,6 +464,10 @@ public class MainActivity extends AppCompatActivity
             TextView mqttVal = findViewById(R.id.temp_val);
             mqttVal.setText(responseText);
             mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
+        } else if (responseText.contains("Free Mem")) {
+            TextView v1 = findViewById(R.id.config_val);
+            v1.setText(responseText);
+            v1.setTypeface(null, Typeface.BOLD_ITALIC);
         }
     }
 
@@ -474,6 +539,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, notificationsStatusActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_5);
+        } else if (id == R.id.nav_logs) {
+            Intent intent = new Intent(this, notificationsStatusActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_7);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -656,4 +725,37 @@ public class MainActivity extends AppCompatActivity
             updateView(msg);
         }
     } */
+
+    private boolean pingServer(String url) {
+        int count = 0;
+        String str = null;
+        try {
+            Process process = null;
+            process = Runtime.getRuntime().exec(
+                    "/system/bin/ping -w 4 -c 3 " + url);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    process.getInputStream()));
+            StringBuffer output = new StringBuffer();
+            String temp;
+            while ( (temp = reader.readLine()) != null) {
+                output.append(temp);
+                count++;
+            }
+            reader.close();
+            if(count > 0)
+                str = output.toString();
+
+            process.destroy();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "PING Count: " + count);
+        Log.d(TAG, "PING String" + str);
+        TextView wifiVal = findViewById(R.id.config_val);
+        wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
+        wifiVal.setText("Config/Status: " + str);
+        return true;
+    }
 }
