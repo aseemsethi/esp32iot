@@ -88,6 +88,15 @@ public class MainActivity extends AppCompatActivity
     String mqtt_token = "";
     //MyReceiver myReceiver;
     BroadcastReceiver myReceiverMqtt = null;
+    BroadcastReceiver myReceiverMqttMsg = null;
+    private class sensorT {
+        public char sensorName[];
+        public int    id;
+        Button        btn;
+    };
+    //sensorT[] sensorStruct = new sensorT[10];
+    sensorT sensorStruct[];
+    final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,10 +104,10 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        //myReceiver = new MyReceiver();
-        //IntentFilter filter2 = new IntentFilter(MQTTMSG_ACTION);
-        //registerReceiver(myReceiver, filter2);
+        sensorStruct = new sensorT[10];
+        for (int i = 0; i < 9; i++) {
+            sensorStruct[i] = new sensorT();
+        }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -653,20 +662,26 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Sensor Name or Tag is empty");
                         return;
                     }
-                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag);
-                    Button btn = new Button(this);
+                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag + ":" +
+                            id);
+                    final Button btn = new Button(this);
                     btn.setText(sensorName);
+                    btn.setBackgroundResource(R.drawable.button_style);
                     btn.setId(id);
                     btn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             v.startAnimation(buttonClick);
-                            //System.out.println("v.getid: " + v.getId());
+                            Log.d(TAG, "btn clicked");
                         }
                     });
                     TableRow tr = findViewById(R.id.table_row_d);
                     tr.addView(btn);
-                    ((Button) findViewById(id)).setBackgroundResource(R.drawable.sensor);
+                    // Save this into a structure, that needs to also go into a file.
+                    sensorStruct[id].id = id;
+                    sensorStruct[id].btn = btn;
+                    sensorStruct[id].sensorName = sensorName.toCharArray();
+
                 }
                 break;
         }
@@ -675,28 +690,30 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         Log.d(TAG, "OnPause");
-        // Unregister since the activity is not visible
-        /* if (myReceiverMqtt != null) {
-            unregisterReceiver(myReceiverMqtt);
-            Log.d(TAG, "unregister myReceiverMqtt");
-            myReceiverMqtt = null;
-        } */
         try {
             Log.d(TAG, "unregister myReceiverMqtt");
             unregisterReceiver(myReceiverMqtt);
         } catch (IllegalArgumentException e) {
             if (e.getMessage().contains("Receiver not registered")) {
                 // Ignore this exception. This is exactly what is desired
-                Log.w(TAG,"Tried to unregister the reciver when it's not registered");
+                Log.w(TAG,"Tried to unregister the myReceiverMqtt when it's not registered");
             } else {
                 // unexpected, re-throw
                 throw e;
             }
         }
-        /*if (myReceiver != null) {
-            unregisterReceiver(myReceiver);
-            myReceiver = null;
-        } */
+        try {
+            Log.d(TAG, "unregister myReceiverMqttMsg");
+            unregisterReceiver(myReceiverMqttMsg);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+                Log.w(TAG,"Tried to unregister the myReceiverMqttMsg when it's not registered");
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
         super.onPause();
     }
     @Override
@@ -713,16 +730,25 @@ public class MainActivity extends AppCompatActivity
                 throw e;
             }
         }
-        /*if (myReceiver != null) {
-            unregisterReceiver(myReceiver);
-            myReceiver = null;
-        } */
+        try {
+            Log.d(TAG, "unregister myReceiverMqttMsg");
+            unregisterReceiver(myReceiverMqttMsg);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+                Log.w(TAG,"Tried to unregister the myReceiverMqttMsg when it's not registered");
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
         super.onDestroy();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume register receivers");
 
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
         registerReceiver(myReceiverMqtt, filter1);
@@ -739,6 +765,27 @@ public class MainActivity extends AppCompatActivity
                 context.startForegroundService(serviceIntent);
             }
         };
+
+        IntentFilter filter2 = new IntentFilter(MQTTMSG_MSG);
+        registerReceiver(myReceiverMqttMsg, filter2);
+        //The BroadcastReceiver that listens for bluetooth broadcasts
+        myReceiverMqttMsg = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String msg = intent.getStringExtra("MQTTRCV");
+                String[] arrOfStr = msg.split(":", 2);
+                int id = Integer.parseInt(arrOfStr[0]);
+                Log.d(TAG, "MQTT Msg recv in main: " + msg + "id:" + id);
+                for (int i = 0; i < 9; i++) {
+                        if (sensorStruct[i].id == id) {
+                        Log.d(TAG, "Found the button");
+                        sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                        break;
+                    }
+                }
+            }
+        };
+
     }
 
     private boolean isMyServiceRunning() {

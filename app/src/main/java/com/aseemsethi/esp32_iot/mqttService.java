@@ -39,6 +39,7 @@ reducing resource usage.
 public class mqttService extends Service {
     final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
+    final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     final String TAG = "ESP32IOT mqttService";
     NotificationManager mNotificationManager;
     Notification notification;
@@ -51,38 +52,6 @@ public class mqttService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    public void runMyTask() {
-        final Thread thread = new Thread() {
-            @Override
-            public void run() {
-                mqttHelper = new MqttHelper(getApplicationContext());
-                Log.d(TAG, "mqttService thread..");
-                mqttHelper.mqttAndroidClient.setCallback(new MqttCallbackExtended() {
-                    @Override
-                    public void connectComplete(boolean b, String s) {
-                        Log.w(TAG,"mqttService - Connected");
-                    }
-                    @Override
-                    public void connectionLost(Throwable throwable) { }
-
-                    @Override
-                    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                        Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
-                        //Intent intent1 = new Intent();
-                        //intent1.setAction(MQTTMSG_ACTION);
-                        //intent1.putExtra("MQTTRCV", mqttMessage.toString());
-                        //sendBroadcast(intent1);
-                        sendNotification(mqttMessage.toString());
-                    }
-
-                    @Override
-                    public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {}
-                });
-            }
-        };
-        thread.start();
     }
 
     public void runMyWork() {
@@ -100,10 +69,10 @@ public class mqttService extends Service {
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.d(TAG, "MQTT Recvd: " + mqttMessage.toString());
                 counter++;
-                //Intent intent1 = new Intent();
-                //intent1.setAction(MQTTMSG_ACTION);
-                //intent1.putExtra("MQTTRCV", mqttMessage.toString());
-                //sendBroadcast(intent1);
+                Intent intent1 = new Intent();
+                intent1.setAction(MQTTMSG_MSG);
+                intent1.putExtra("MQTTRCV", mqttMessage.toString());
+                sendBroadcast(intent1);
                 sendNotification(mqttMessage.toString());
                 FileOutputStream fos;
                 try {

@@ -133,7 +133,7 @@
             android:textSize="16sp"
             android:inputType="time"
             android:textStyle="bold"
-            android:text="Identifier" />
+            android:text="Identifier (1 to 9)" />
 
         <EditText
             android:id="@+id/bleID"
