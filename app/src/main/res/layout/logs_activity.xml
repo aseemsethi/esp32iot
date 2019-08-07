@@ -73,7 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:inputType="textPersonName"
-        android:text="Logs:" />
+        android:text="Debug Logs:" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/logs_recycler_view"
@@ -99,12 +99,34 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/startLogsB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/rounded_corner"
+            android:paddingHorizontal="10dp"
+            android:text="Start Logging"
+            android:textColor="#672edf"
+            android:textStyle="bold|italic" />
+
+        <Button
             android:id="@+id/getLogsB"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_corner"
             android:paddingHorizontal="10dp"
+            android:layout_marginRight="30dp"
             android:text="Get Logs"
+            android:textColor="#672edf"
+            android:textStyle="bold|italic" />
+
+        <Button
+            android:id="@+id/clearLogsB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_corner"
+            android:paddingHorizontal="10dp"
+            android:text="Clear"
             android:textColor="#672edf"
             android:textStyle="bold|italic" />
     </LinearLayout>

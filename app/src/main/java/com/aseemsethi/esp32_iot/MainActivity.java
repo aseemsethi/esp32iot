@@ -37,6 +37,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -103,6 +107,18 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
+
+        navigationView.setNavigationItemSelectedListener(this);
+        final Button nodeB = findViewById(R.id.node);
+        nodeB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.startAnimation(buttonClick);
+                Context context = getApplicationContext();
+                Intent intent = new Intent(context, mdnsActivity.class);
+                startActivityForResult(intent, REQUEST_CODE_1);
+            }
+        });
         final Button wifiB = findViewById(R.id.wifi_b);
         wifiB.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -540,7 +556,7 @@ public class MainActivity extends AppCompatActivity
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_5);
         } else if (id == R.id.nav_logs) {
-            Intent intent = new Intent(this, notificationsStatusActivity.class);
+            Intent intent = new Intent(this, LogsActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_7);
         }
@@ -627,13 +643,30 @@ public class MainActivity extends AppCompatActivity
                 if(resultCode == RESULT_OK) {
                     String sensorName = dataIntent.getStringExtra("sensorName");
                     String sensorTag = dataIntent.getStringExtra("sensorTag");
+                    String notifyOn = dataIntent.getStringExtra("notifyOn");
+                    String startTime = dataIntent.getStringExtra("startTime");
+                    String endTime = dataIntent.getStringExtra("endTime");
+                    String bleID = dataIntent.getStringExtra("bleID");
+                    int id = Integer.parseInt(bleID);
+
                     if (sensorName.isEmpty() || sensorTag.isEmpty()) {
                         Log.d(TAG, "Sensor Name or Tag is empty");
                         return;
                     }
                     Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag);
-                    //mAdapter.add("Sensor Added: " + sensorName + " : " + sensorTag, Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    Button btn = new Button(this);
+                    btn.setText(sensorName);
+                    btn.setId(id);
+                    btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            v.startAnimation(buttonClick);
+                            //System.out.println("v.getid: " + v.getId());
+                        }
+                    });
+                    TableRow tr = findViewById(R.id.table_row_d);
+                    tr.addView(btn);
+                    ((Button) findViewById(id)).setBackgroundResource(R.drawable.sensor);
                 }
                 break;
         }

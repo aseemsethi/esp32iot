@@ -37,6 +37,33 @@
         android:layout_marginTop="20dp"
         android:orientation="horizontal">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:textStyle="bold"
+            android:text="Notify at" />
+
+        <EditText
+            android:id="@+id/notifyOn"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:layout_marginLeft="20dp"
+            android:text="Open"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
         <EditText
             android:id="@+id/sensorNameT"
             android:layout_width="0dp"
@@ -57,14 +84,75 @@
             android:text="4ffe1a"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:textStyle="bold"
+            android:text="Time (24hrs)" />
+
+        <EditText
+            android:id="@+id/startTime"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:text="9" />
+
+        <EditText
+            android:id="@+id/endTime"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:layout_marginLeft="20dp"
+            android:text="12"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="time"
+            android:textStyle="bold"
+            android:text="Identifier" />
+
+        <EditText
+            android:id="@+id/bleID"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:inputType="number"
+            android:layout_marginLeft="20dp"
+            android:text="1"/>
+    </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/sensor_recycler_view"
-        android:layout_width="368dp"
-        android:layout_height="300dp"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
         android:layout_margin="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
@@ -85,7 +173,7 @@
             android:id="@+id/saveSensorT"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginBottom="30dp"
             android:textColor="#672edf"
             android:textStyle="bold|italic"
             android:paddingHorizontal="10dp"

@@ -67,19 +67,38 @@ public class LogsActivity extends AppCompatActivity {
         String message = intent.getStringExtra("address");
         ipaddressDev.setText(message);
 
-        Button search = (Button) findViewById(R.id.getLogsB);
+        Button search = (Button) findViewById(R.id.startLogsB);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.startAnimation(buttonClick);
-                    String uri = "http://" + ipaddressDev.getText() + ":8080/check?logs=1";
-                    Log.d(TAG, "Sending Logs Request to Device: " + uri);
-                    mAdapter.add("Sending Logs Request to Device: " + uri, Color.BLUE);
+                    String uri = "http://" + ipaddressDev.getText() + ":8080/check?startlogs=1";
+                    Log.d(TAG, "Sending Logs Start to Device: " + uri);
+                    mAdapter.add("Sending Logs Start to Device: " + uri, Color.BLUE);
                     mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     startSendHttpRequestThread(uri);
                 }
             });
-
+        Button getB = (Button) findViewById(R.id.getLogsB);
+        getB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(buttonClick);
+                String uri = "http://" + ipaddressDev.getText() + ":8080/check?getlogs=1";
+                Log.d(TAG, "Sending Logs Get to Device: " + uri);
+                mAdapter.add("Sending Logs Get to Device: " + uri, Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                startSendHttpRequestThread(uri);
+            }
+        });
+        Button clearB = (Button) findViewById(R.id.clearLogsB);
+        clearB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(buttonClick);
+                mAdapter.clear();
+            }
+        });
         mRecyclerView = (RecyclerView) findViewById(R.id.logs_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);

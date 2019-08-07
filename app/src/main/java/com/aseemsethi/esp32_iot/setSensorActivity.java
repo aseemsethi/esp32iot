@@ -58,7 +58,7 @@ public class setSensorActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String message = intent.getStringExtra("address");
         ipaddressDevice = message;
-        Log.d(TAG, "SetSendor called with Device Address: " + ipaddressDevice);
+        Log.d(TAG, "SetSensor called with Device Address: " + ipaddressDevice);
 
         Button save = (Button) findViewById(R.id.saveSensorT);
         save.setOnClickListener(new View.OnClickListener() {
@@ -69,7 +69,14 @@ public class setSensorActivity extends AppCompatActivity {
                 String sensorNameS = (sensorName).getText().toString();
                 EditText sensorTag = findViewById(R.id.sensorTagT);
                 String sensorTagS = (sensorTag).getText().toString();
-
+                EditText notifyOn = findViewById(R.id.notifyOn);
+                String notifyOnS = (notifyOn).getText().toString();
+                EditText startTime = findViewById(R.id.startTime);
+                String startTimeS = (startTime).getText().toString();
+                EditText endTime = findViewById(R.id.endTime);
+                String endTimeS = (endTime).getText().toString();
+                EditText bleID = findViewById(R.id.bleID);
+                String bleIDS = (bleID).getText().toString();
                 // Store Sensor in File
                 // FileOutputStream fos;
                 //try {
@@ -85,18 +92,24 @@ public class setSensorActivity extends AppCompatActivity {
                     mAdapter.add(sensorNameS + ":" + sensorTagS, Color.BLUE);
                     mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     String uri = "http://" + ipaddressDevice + ":8080/enable?ble="+
-                            sensorNameS + ":" + sensorTagS;
+                            sensorNameS + ":" + sensorTagS + ":" + notifyOnS + ":" +
+                            startTimeS + ":" + endTimeS + ":" + bleIDS;
                     Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
                     startSendHttpRequestThread(uri);
                 //} catch (FileNotFoundException e) {e.printStackTrace();}
                 //catch (IOException e) {e.printStackTrace();}
 
-                /* Intent intent = new Intent();
+                Intent intent = new Intent();
                 Log.d(TAG, "Send Sensor info: " + sensorNameS + " : " + sensorTagS);
                 intent.putExtra("sensorName", sensorNameS);
                 intent.putExtra("sensorTag", sensorTagS);
+                intent.putExtra("notifyOn", notifyOnS);
+                intent.putExtra("startTime", startTimeS);
+                intent.putExtra("endTime", endTimeS);
+                intent.putExtra("bleID", bleIDS);
+
                 setResult(RESULT_OK, intent);
-                finish(); */
+                finish();
             }
         });
         mRecyclerView = (RecyclerView) findViewById(R.id.sensor_recycler_view);
