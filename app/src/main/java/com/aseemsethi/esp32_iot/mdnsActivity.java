@@ -388,8 +388,13 @@ public class mdnsActivity extends AppCompatActivity {
     public void onBackPressed() {
         stopListening();
         Intent intent = new Intent();
+        Log.d(TAG, "Index: " + mAdapter.row_index);
+        Log.d(TAG, "Value: " + mAdapter.get(mAdapter.row_index));
+        String[] arrOfStr = (mAdapter.get(mAdapter.row_index)).split(",", 4);
+        Log.d(TAG, "Address: " + arrOfStr[2]);
+        mRPiAddress = arrOfStr[2].trim();
         intent.putExtra("Address", mRPiAddress);
-        intent.putExtra("gServiceName", gServiceName);
+        //intent.putExtra("gServiceName", gServiceName);
         setResult(RESULT_OK, intent);
         finish();
     }

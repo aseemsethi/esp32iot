@@ -620,13 +620,13 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     // gServiceName is mDNS ServiceName
-                    String service = dataIntent.getStringExtra("gServiceName");
+                    /*String service = dataIntent.getStringExtra("gServiceName");
                     if (service == null || service.isEmpty()) {
                         Log.d(TAG, "No Service Name set");
                         return;
                     }
                     textView1.setText(service);
-                    textView1.setTypeface(null, Typeface.BOLD_ITALIC);
+                    textView1.setTypeface(null, Typeface.BOLD_ITALIC); */
                 }
                 break;
             case REQUEST_CODE_2:
@@ -774,7 +774,6 @@ public class MainActivity extends AppCompatActivity
             public void onReceive(Context context, Intent intent) {
                 String msg = intent.getStringExtra("MQTTRCV");
                 String[] arrOfStr = msg.split(":", 2);
-                //int id = Integer.parseInt(arrOfStr[0]);
                 int id = parseWithDefault(arrOfStr[0], 0);
                 if (id == 0) {
                     Log.d(TAG, "Cannot associate BLE with Button");
