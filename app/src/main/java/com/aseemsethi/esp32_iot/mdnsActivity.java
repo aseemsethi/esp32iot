@@ -63,6 +63,7 @@ public class mdnsActivity extends AppCompatActivity {
     boolean disoveryStarted = false;
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
+    int counter = 0;
 
     final String TAG = "ESP32IOT mDNS";
 
@@ -146,7 +147,7 @@ public class mdnsActivity extends AppCompatActivity {
         // mDNS stuff
         mRPiAddress = "";
         mNsdManager = (NsdManager)(getApplicationContext().getSystemService(Context.NSD_SERVICE));
-        initializeResolveListener();
+        //initializeResolveListener();
         initializeDiscoveryListener();
         initializeRegistrationListener();
         //mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
@@ -208,9 +209,9 @@ public class mdnsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onServiceFound(NsdServiceInfo service) {
+            public void onServiceFound(final NsdServiceInfo service) {
                 // A service was found! Do something with it.
-                Log.d(TAG, "Service discovery success" + service);
+                Log.d(TAG, "Service discovery success: " + service);
                 if (!service.getServiceType().equals(SERVICE_TYPE)) {
                     // Service type is the string containing the protocol and
                     // transport layer for this service.
@@ -223,7 +224,21 @@ public class mdnsActivity extends AppCompatActivity {
                 mNsdManager.resolveService(service, new NsdManager.ResolveListener() {
                     @Override
                     public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                        Log.e(TAG, "Resolve Failed: ..." + serviceInfo);
+                        Log.e(TAG, "Resolve Failed: " + serviceInfo + "\tError Code: " + errorCode);
+                        switch (errorCode) {
+                            case NsdManager.FAILURE_ALREADY_ACTIVE:
+                                Log.e(TAG, "FAILURE_ALREADY_ACTIVE");
+                                // Just try again...
+                                Log.d(TAG, "Trying Resolve again !!");
+                                initializeResolveListener(service);
+                                break;
+                            case NsdManager.FAILURE_INTERNAL_ERROR:
+                                Log.e(TAG, "FAILURE_INTERNAL_ERROR");
+                                break;
+                            case NsdManager.FAILURE_MAX_LIMIT:
+                                Log.e(TAG, "FAILURE_MAX_LIMIT");
+                                break;
+                        }
                     }
                     @Override
                     public void onServiceResolved(final NsdServiceInfo serviceInfo) {
@@ -279,24 +294,39 @@ public class mdnsActivity extends AppCompatActivity {
 
     // This does not work - we need to create a new ResolverListener for each device found
     // https://stackoverflow.com/questions/25815162/listener-already-in-use-service-discovery
-    public void initializeResolveListener() {
+    // Aug update - works for retrying resolves..
+    public void initializeResolveListener(final NsdServiceInfo service) {
         mResolveListener = new NsdManager.ResolveListener() {
 
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails. Use the error code to debug.
-                Log.e(TAG, "Resolve failed: " + errorCode);
+                Log.e(TAG, "2nd Resolve Failed: " + serviceInfo + "\tError Code: " + errorCode);
+                switch (errorCode) {
+                    case NsdManager.FAILURE_ALREADY_ACTIVE:
+                        Log.e(TAG, "FAILURE_ALREADY_ACTIVE...");
+                        if (counter++ > 3) break;
+                        initializeResolveListener(service);
+                        break;
+                    case NsdManager.FAILURE_INTERNAL_ERROR:
+                        Log.e(TAG, "FAILURE_INTERNAL_ERROR...");
+                        break;
+                    case NsdManager.FAILURE_MAX_LIMIT:
+                        Log.e(TAG, "FAILURE_MAX_LIMIT...");
+                        break;
+                }
             }
 
             @Override
             public void onServiceResolved(final NsdServiceInfo serviceInfo) {
-                Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
+                Log.e(TAG, "2nd Resolve Succeeded... " + serviceInfo);
+                counter = 0;
 
                 mServiceInfo = serviceInfo;
                 final int port = mServiceInfo.getPort();
                 InetAddress host = mServiceInfo.getHost();
                 final String address = host.getHostAddress();
-                Log.d(TAG, "Resolved address = " + address + " : " + port);
+                Log.d(TAG, "2nd Resolved address... = " + address + " : " + port);
                 mRPiAddress = address;
                 mHandler.post(new Runnable() {  // or progress.post
                     @Override
@@ -310,6 +340,7 @@ public class mdnsActivity extends AppCompatActivity {
                 });
             }
         };
+        mNsdManager.resolveService(service, mResolveListener);
     }
 
     public void initializeRegistrationListener() {

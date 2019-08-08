@@ -774,7 +774,12 @@ public class MainActivity extends AppCompatActivity
             public void onReceive(Context context, Intent intent) {
                 String msg = intent.getStringExtra("MQTTRCV");
                 String[] arrOfStr = msg.split(":", 2);
-                int id = Integer.parseInt(arrOfStr[0]);
+                //int id = Integer.parseInt(arrOfStr[0]);
+                int id = parseWithDefault(arrOfStr[0], 0);
+                if (id == 0) {
+                    Log.d(TAG, "Cannot associate BLE with Button");
+                    return;
+                }
                 Log.d(TAG, "MQTT Msg recv in main: " + msg + "id:" + id);
                 for (int i = 0; i < 9; i++) {
                         if (sensorStruct[i].id == id) {
@@ -786,6 +791,16 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
+    }
+
+    int parseWithDefault(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        }
+        catch (NumberFormatException e) {
+            // It's OK to ignore "e" here because returning a default value is the documented behaviour on invalid input.
+            return def;
+        }
     }
 
     private boolean isMyServiceRunning() {
