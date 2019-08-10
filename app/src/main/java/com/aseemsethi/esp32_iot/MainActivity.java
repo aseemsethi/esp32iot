@@ -3,28 +3,20 @@ package com.aseemsethi.esp32_iot;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
-import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -37,12 +29,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.ScrollView;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -53,12 +41,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 // How to import esptouch module.
 // File --> New --> Import Module - point this to the esptouch directory locally downloaded
@@ -90,13 +73,15 @@ public class MainActivity extends AppCompatActivity
     BroadcastReceiver myReceiverMqtt = null;
     BroadcastReceiver myReceiverMqttMsg = null;
     private class sensorT {
-        public char sensorName[];
+        public String sensorName;
+        public String sensorTag;
         public int    id;
         Button        btn;
     };
-    //sensorT[] sensorStruct = new sensorT[10];
     sensorT sensorStruct[];
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
+    private long lastTouchTime = 0;
+    private long currentTouchTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,6 +253,28 @@ public class MainActivity extends AppCompatActivity
                 mqttVal1.setTypeface(null, Typeface.BOLD_ITALIC);
             }
         });
+        Button clearConfB = (Button) findViewById(R.id.clearConfigB);
+        clearConfB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 250) {
+                    Log.d(TAG, "Double Click");
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+                } else {
+                    Log.d(TAG, "Single Click");
+                    return;
+                }
+                if (deviceAddress.isEmpty()) return;
+                Log.d(TAG, "Clearing Device config File and deleting all Sensors !!!");
+                deleteFile("esp32SensorNode");
+                String uri = "http://" + deviceAddress + ":8080/clear";
+                startSendHttpRequestThread(uri);
+            }
+        });
         /*
         final Button clear = findViewById(R.id.clear_b);
         clear.setOnClickListener( new View.OnClickListener() {
@@ -299,6 +306,21 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "Read Device Node from file: " + deviceAddress);
                 TextView textView = (TextView)findViewById(R.id.node);
                 textView.setText(deviceAddress);
+            }
+        } catch (IOException e) { e.printStackTrace();}
+
+        // Read Sensors from file
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32SensorNode")));
+            String inputString;
+            while ((inputString = inputReader.readLine()) != null) {
+                String str = inputString;
+                String[] arrOfStr = str.split(":", 4);
+                Log.d(TAG, "Read Sensor Node from file: " + str);
+                if (arrOfStr[0] != null) {
+                    addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]));
+                }
             }
         } catch (IOException e) { e.printStackTrace();}
 
@@ -662,29 +684,51 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Sensor Name or Tag is empty");
                         return;
                     }
-                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " + sensorTag + ":" +
-                            id);
-                    final Button btn = new Button(this);
-                    btn.setText(sensorName);
-                    btn.setBackgroundResource(R.drawable.button_style);
-                    btn.setId(id);
-                    btn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            v.startAnimation(buttonClick);
-                            Log.d(TAG, "btn clicked");
-                        }
-                    });
-                    TableRow tr = findViewById(R.id.table_row_d);
-                    tr.addView(btn);
-                    // Save this into a structure, that needs to also go into a file.
-                    sensorStruct[id].id = id;
-                    sensorStruct[id].btn = btn;
-                    sensorStruct[id].sensorName = sensorName.toCharArray();
-
+                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " +
+                            sensorTag + ":" + id);
+                    addButton(sensorName, sensorTag, id);
+                    FileOutputStream fos;
+                    try {
+                        fos = openFileOutput("esp32SensorNode", Context.MODE_APPEND);
+                        String str = sensorName + ":" + sensorTag + ":" + id;
+                        fos.write(str.getBytes());
+                        fos.write("\n".getBytes());
+                        Log.d(TAG, "Saving Sensor Node to file" + ":" + str);
+                        fos.close();
+                    } catch (FileNotFoundException e) {e.printStackTrace();}
+                    catch (IOException e) {e.printStackTrace();}
                 }
                 break;
         }
+    }
+
+    void addButton(String sensorName, String sensorTag, int id) {
+        for (int i = 0; i < 9; i++) {
+            if (sensorStruct[i].sensorName == sensorName ||
+                    sensorStruct[i].id == id ||
+                    sensorStruct[i].sensorTag == sensorTag) {
+                Log.d(TAG, "Sensor already added    !!!!"); return;
+            }
+        }
+        final Button btn = new Button(this);
+        btn.setText(sensorName);
+        btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
+        btn.setId(id);
+        btn.setBackgroundResource(R.drawable.sensor);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.startAnimation(buttonClick);
+                Log.d(TAG, "btn clicked");
+            }
+        });
+        TableRow tr = findViewById(R.id.table_row_d);
+        tr.addView(btn);
+        // Save this into a structure, that needs to also go into a file.
+        sensorStruct[id].id = id;
+        sensorStruct[id].btn = btn;
+        sensorStruct[id].sensorName = sensorName;
+        sensorStruct[id].sensorTag = sensorTag;
     }
 
     @Override
@@ -773,17 +817,19 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onReceive(Context context, Intent intent) {
                 String msg = intent.getStringExtra("MQTTRCV");
-                String[] arrOfStr = msg.split(":", 2);
+                String[] arrOfStr = msg.split(":", 4);
+                Log.d(TAG, "Button msg: " + msg);
                 int id = parseWithDefault(arrOfStr[0], 0);
                 if (id == 0) {
                     Log.d(TAG, "Cannot associate BLE with Button");
                     return;
                 }
-                Log.d(TAG, "MQTT Msg recv in main: " + msg + "id:" + id);
+                Log.d(TAG, "MQTT Msg recv in main: " + msg + ",  id:" + id);
                 for (int i = 0; i < 9; i++) {
                         if (sensorStruct[i].id == id) {
                         Log.d(TAG, "Found the button");
-                        sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                        sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
+                            + arrOfStr[2]);
                         break;
                     }
                 }

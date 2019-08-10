@@ -58,11 +58,21 @@
             <Button
                 android:id="@+id/temp_b"
                 android:layout_width="0dip"
-                android:layout_column="2"
+                android:layout_column="1"
                 android:layout_marginRight="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_corner_heading"
                 android:text="Temp" />
+
+            <Button
+                android:id="@+id/clearConfigB"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_heading"
+                android:tooltipText="Use with Caution, Erases Device to factory mode, and remvoes all sensors from App"
+                android:text="ClrConfig" />
 
         </TableRow>
 
@@ -77,7 +87,8 @@
         <TableRow
             android:id="@+id/table_row_d"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"></TableRow>
+            android:layout_height="wrap_content">
+        </TableRow>
 
         <View android:layout_height="10dp" />
 

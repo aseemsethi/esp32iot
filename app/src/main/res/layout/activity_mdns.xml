@@ -120,7 +120,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/iot_recycler_view"
         android:layout_width="368dp"
-        android:layout_height="300dp"
+        android:layout_height="200dp"
         android:layout_margin="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
@@ -132,31 +132,6 @@
         android:verticalScrollbarPosition="right"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
     </android.support.v7.widget.RecyclerView>
-
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_marginTop="30dp"
-        android:layout_height="3dp"
-        android:background="@android:color/holo_blue_light"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/clearConfigB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#672edf"
-            android:textStyle="bold|italic"
-            android:paddingHorizontal="10dp"
-            android:background="@drawable/rounded_corner"
-            android:text="Clear Device Config" />
-    </LinearLayout>
 
 </LinearLayout>
 
