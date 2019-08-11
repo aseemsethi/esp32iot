@@ -16,6 +16,7 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Button;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -39,6 +40,7 @@ reducing resource usage.
 public class mqttService extends Service {
     final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
+    final static String MQTTUPDATE_SENSOR_ACTION = "MQTTUPDATE_SENSOR_ACTION";
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     final String TAG = "ESP32IOT mqttService";
     NotificationManager mNotificationManager;
@@ -47,6 +49,14 @@ public class mqttService extends Service {
     MqttHelper mqttHelper;
     String mqtt_token = "";
     static int counter = 0;
+    private class sensorT {
+        public String sensorName;
+        public String sensorTag;
+        public String notifyOn;
+        public int    id;
+        Button btn;
+    };
+    sensorT sensorStruct[];
 
     @Nullable
     @Override
@@ -73,7 +83,12 @@ public class mqttService extends Service {
                 intent1.setAction(MQTTMSG_MSG);
                 intent1.putExtra("MQTTRCV", mqttMessage.toString());
                 sendBroadcast(intent1);
-                sendNotification(mqttMessage.toString());
+                if (poilcyAllows(mqttMessage.toString())) {
+                    Log.d(TAG, "Policy allows notification");
+                    sendNotification(mqttMessage.toString());
+                } else {
+                    Log.d(TAG, "Policy does not allow notification");
+                }
                 FileOutputStream fos;
                 try {
                     String msg = mqttMessage.toString() + ":" + counter + "\n";
@@ -90,6 +105,34 @@ public class mqttService extends Service {
         });
     }
 
+    boolean poilcyAllows(String msg) {
+        String[] arrOfStr = msg.split(":", 4);
+        int id = parseWithDefault(arrOfStr[0], 0);
+        if (id == 0) {
+            Log.d(TAG, "Cannot associate BLE with a Sensor");
+            return false;
+        }
+        for (int i = 0; i < 9; i++) {
+            if (sensorStruct[i].id == id) {
+                Log.d(TAG, "Comparing: " + sensorStruct[i].notifyOn + ":" + arrOfStr[2]+":");
+                if ((sensorStruct[i].notifyOn).equals(arrOfStr[2].trim())) {
+                    return true;
+                } else
+                    return false;
+            }
+        }
+        return false;
+    }
+
+    int parseWithDefault(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        }
+        catch (NumberFormatException e) {
+            // It's OK to ignore "e" here because returning a default value is the documented behaviour on invalid input.
+            return def;
+        }
+    }
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action;
 
@@ -103,6 +146,10 @@ public class mqttService extends Service {
         switch (action) {
             case MQTTMSG_ACTION:
                 Log.d(TAG, "Starting mqttService first time !!");
+                sensorStruct = new sensorT[10];
+                for (int i = 0; i < 9; i++) {
+                    sensorStruct[i] = new sensorT();
+                }
                 mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
                 NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,
                         "my_channel",
@@ -117,6 +164,12 @@ public class mqttService extends Service {
                 mqtt_token = intent.getStringExtra("topic");
                 Log.d(TAG, "Recvd MQTT Token to subscribe: " + mqtt_token);
                 mqttHelper.subscribeToTopic(mqtt_token);
+            case MQTTUPDATE_SENSOR_ACTION:
+                int id = intent.getIntExtra("id", 0);
+                String notifyOn = intent.getStringExtra("notifyOn");
+                Log.d(TAG, "Recvd Sensor info from Main: " + id + ":" + notifyOn);
+                sensorStruct[id].id = id;
+                sensorStruct[id].notifyOn = notifyOn;
         }
         return START_STICKY;
     }

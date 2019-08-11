@@ -52,7 +52,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:inputType="time"
+            android:inputType="textPersonName"
             android:layout_marginLeft="20dp"
             android:text="Open"/>
     </LinearLayout>
@@ -106,7 +106,7 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:inputType="time"
-            android:text="9" />
+            android:text="0" />
 
         <EditText
             android:id="@+id/endTime"
@@ -116,7 +116,7 @@
             android:textSize="16sp"
             android:inputType="time"
             android:layout_marginLeft="20dp"
-            android:text="12"/>
+            android:text="24"/>
     </LinearLayout>
 
     <LinearLayout

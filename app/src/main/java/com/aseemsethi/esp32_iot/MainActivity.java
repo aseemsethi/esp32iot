@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     private class sensorT {
         public String sensorName;
         public String sensorTag;
+        public String notifyOn;
         public int    id;
         Button        btn;
     };
@@ -230,11 +231,6 @@ public class MainActivity extends AppCompatActivity
                     //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
-                TextView mDNS = findViewById(R.id.mdns_val);
-                mDNS.setTypeface(null, Typeface.BOLD_ITALIC);
-                mDNS.setText("mDNS Name");
-                if (deviceAddress != null)
-                    mDNS.setText(deviceAddress);
                 v.startAnimation(buttonClick);
                 TextView wifiVal = findViewById(R.id.config_val);
                 wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
@@ -309,6 +305,18 @@ public class MainActivity extends AppCompatActivity
             }
         } catch (IOException e) { e.printStackTrace();}
 
+        if (isMyServiceRunning()) {
+            Log.d(TAG, "MainActivity onCreate: service is already running");
+        } else {
+            Context context = getApplicationContext();
+            Intent serviceIntent = new Intent(context, mqttService.class);
+            serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
+            Log.d(TAG, "Starting mqttService");
+            startForegroundService(serviceIntent);
+            //Log.d(TAG, "OnCreate: Register receivers"); -- this is done in resume
+            //registerServices();
+        }
+
         // Read Sensors from file
         try {
             BufferedReader inputReader = new BufferedReader(new InputStreamReader(
@@ -319,20 +327,19 @@ public class MainActivity extends AppCompatActivity
                 String[] arrOfStr = str.split(":", 4);
                 Log.d(TAG, "Read Sensor Node from file: " + str);
                 if (arrOfStr[0] != null) {
-                    addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]));
+                    addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]), arrOfStr[3]);
+                    // Update the MQTT service for its policies on notification
+                    Context context = getApplicationContext();
+                    Intent serviceIntent = new Intent(context, mqttService.class);
+                    serviceIntent.setAction(mqttService.MQTTUPDATE_SENSOR_ACTION);
+                    serviceIntent.putExtra("id", Integer.parseInt(arrOfStr[2]));
+                    serviceIntent.putExtra("notifyOn", arrOfStr[3]);
+                    startService(serviceIntent);
                 }
             }
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
-        if (isMyServiceRunning()) {
-            Log.d(TAG, "MainActivity onCreate: service is already running"); return;
-        }
-        Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, mqttService.class);
-        serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
-        Log.d(TAG, "Starting mqttService");
-        startForegroundService(serviceIntent);
     }
 
     @Override
@@ -605,7 +612,6 @@ public class MainActivity extends AppCompatActivity
             // This request code is set by startActivityForResult(intent, REQUEST_CODE_1) method.
             case REQUEST_CODE_1:
                 TextView textView = (TextView)findViewById(R.id.node);
-                TextView textView1 = (TextView)findViewById(R.id.mdns_val);
                 // User could have selected Search for IOT or entered DuckDNS Domain Name
                 if(resultCode == RESULT_OK) {
                     String address = dataIntent.getStringExtra("Address");
@@ -620,8 +626,6 @@ public class MainActivity extends AppCompatActivity
                                 textView.setText(domain);
                                 // DNS Resolve this address now and set it to deviceAddress
                                 deviceAddress = domain;
-                                textView1.setText(deviceAddress);
-                                textView1.setTypeface(null, Typeface.BOLD_ITALIC);
                         }
                     } else {
                         textView.setText(address);
@@ -642,13 +646,7 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     // gServiceName is mDNS ServiceName
-                    /*String service = dataIntent.getStringExtra("gServiceName");
-                    if (service == null || service.isEmpty()) {
-                        Log.d(TAG, "No Service Name set");
-                        return;
-                    }
-                    textView1.setText(service);
-                    textView1.setTypeface(null, Typeface.BOLD_ITALIC); */
+                    /*String service = dataIntent.getStringExtra("gServiceName"); */
                 }
                 break;
             case REQUEST_CODE_2:
@@ -684,13 +682,21 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Sensor Name or Tag is empty");
                         return;
                     }
+                    // Update the MQTT service for its policies on notification
+                    Context context = getApplicationContext();
+                    Intent serviceIntent = new Intent(context, mqttService.class);
+                    serviceIntent.setAction(mqttService.MQTTUPDATE_SENSOR_ACTION);
+                    serviceIntent.putExtra("id", id);
+                    serviceIntent.putExtra("notifyOn", notifyOn);
+                    startService(serviceIntent);
+
                     Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " +
                             sensorTag + ":" + id);
-                    addButton(sensorName, sensorTag, id);
+                    addButton(sensorName, sensorTag, id, notifyOn);
                     FileOutputStream fos;
                     try {
                         fos = openFileOutput("esp32SensorNode", Context.MODE_APPEND);
-                        String str = sensorName + ":" + sensorTag + ":" + id;
+                        String str = sensorName + ":" + sensorTag + ":" + id + ":" + notifyOn;
                         fos.write(str.getBytes());
                         fos.write("\n".getBytes());
                         Log.d(TAG, "Saving Sensor Node to file" + ":" + str);
@@ -702,7 +708,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    void addButton(String sensorName, String sensorTag, int id) {
+    void addButton(String sensorName, String sensorTag, int id, String notifyOn) {
         for (int i = 0; i < 9; i++) {
             if (sensorStruct[i].sensorName == sensorName ||
                     sensorStruct[i].id == id ||
@@ -729,46 +735,37 @@ public class MainActivity extends AppCompatActivity
         sensorStruct[id].btn = btn;
         sensorStruct[id].sensorName = sensorName;
         sensorStruct[id].sensorTag = sensorTag;
+        sensorStruct[id].notifyOn = notifyOn;
     }
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "OnPause");
-        try {
-            Log.d(TAG, "unregister myReceiverMqtt");
-            unregisterReceiver(myReceiverMqtt);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("Receiver not registered")) {
-                // Ignore this exception. This is exactly what is desired
-                Log.w(TAG,"Tried to unregister the myReceiverMqtt when it's not registered");
-            } else {
-                // unexpected, re-throw
-                throw e;
-            }
-        }
-        try {
-            Log.d(TAG, "unregister myReceiverMqttMsg");
-            unregisterReceiver(myReceiverMqttMsg);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("Receiver not registered")) {
-                // Ignore this exception. This is exactly what is desired
-                Log.w(TAG,"Tried to unregister the myReceiverMqttMsg when it's not registered");
-            } else {
-                // unexpected, re-throw
-                throw e;
-            }
-        }
+        Log.d(TAG, "Main activity - OnPause");
         super.onPause();
+        unregisterServices();
     }
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "Main activity - destroy");
+        super.onDestroy();
+        unregisterServices();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "Main activity - stop");
+        super.onStop();
+        unregisterServices();
+    }
+
+    void unregisterServices() {
         try {
             Log.d(TAG, "onDestroy unregister myReceiverMqtt");
             unregisterReceiver(myReceiverMqtt);
         } catch (IllegalArgumentException e) {
             if (e.getMessage().contains("Receiver not registered")) {
                 // Ignore this exception. This is exactly what is desired
-                Log.w(TAG,"Tried to unregister the reciver when it's not registered");
+                Log.w(TAG,"Tried to unregister myReceiverMqtt when it's not registered");
             } else {
                 // unexpected, re-throw
                 throw e;
@@ -780,22 +777,25 @@ public class MainActivity extends AppCompatActivity
         } catch (IllegalArgumentException e) {
             if (e.getMessage().contains("Receiver not registered")) {
                 // Ignore this exception. This is exactly what is desired
-                Log.w(TAG,"Tried to unregister the myReceiverMqttMsg when it's not registered");
+                Log.w(TAG,"Tried to unregister myReceiverMqttMsg when it's not registered");
             } else {
                 // unexpected, re-throw
                 throw e;
             }
         }
-        super.onDestroy();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume register receivers");
+        Log.d(TAG, "OnResume - Register receivers");
+        registerServices();
+    }
+
+    void registerServices() {
+        Log.d(TAG, "Register receivers");
 
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
-        registerReceiver(myReceiverMqtt, filter1);
         //The BroadcastReceiver that listens for bluetooth broadcasts
         myReceiverMqtt = new BroadcastReceiver() {
             @Override
@@ -809,9 +809,9 @@ public class MainActivity extends AppCompatActivity
                 context.startForegroundService(serviceIntent);
             }
         };
+        registerReceiver(myReceiverMqtt, filter1);
 
         IntentFilter filter2 = new IntentFilter(MQTTMSG_MSG);
-        registerReceiver(myReceiverMqttMsg, filter2);
         //The BroadcastReceiver that listens for bluetooth broadcasts
         myReceiverMqttMsg = new BroadcastReceiver() {
             @Override
@@ -824,18 +824,23 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "Cannot associate BLE with Button");
                     return;
                 }
+                // MQTT Recvd: 3:Round:Closed : Fri Aug  9 22:09:32 2019:192.168.1.35:
                 Log.d(TAG, "MQTT Msg recv in main: " + msg + ",  id:" + id);
                 for (int i = 0; i < 9; i++) {
-                        if (sensorStruct[i].id == id) {
+                    if (sensorStruct[i].id == id) {
                         Log.d(TAG, "Found the button");
                         sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
-                            + arrOfStr[2]);
+                                + "\n" + arrOfStr[2]);
+                        if ((arrOfStr[2].trim()).equals("Open"))
+                            sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
+                        else
+                            sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
                         break;
                     }
                 }
             }
         };
-
+        registerReceiver(myReceiverMqttMsg, filter2);
     }
 
     int parseWithDefault(String s, int def) {

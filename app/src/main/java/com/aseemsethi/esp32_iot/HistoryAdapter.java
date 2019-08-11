@@ -61,7 +61,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        Log.d(TAG, "Bind Id: " + position);
+        //Log.d(TAG, "Bind Id: " + position);
         //holder.itemView.setBackgroundColor(colorVar);
         //holder.rootView.setBackgroundColor(myColors.get(position));
         holder.mTextView.setTextSize(15);
