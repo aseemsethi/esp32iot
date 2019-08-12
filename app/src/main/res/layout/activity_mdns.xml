@@ -38,34 +38,6 @@
         android:layout_height="3dp"
         android:background="@android:color/holo_blue_light"/>
 
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:background="@drawable/my_border"
-            android:textSize="16dp"
-            android:inputType="textPersonName"
-            android:text="My Domain:" />
-
-        <EditText
-            android:id="@+id/myDomain"
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="aseemsethi.duckdns.org"
-            android:inputType="textPersonName" />
-    </LinearLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="70dp"
@@ -85,16 +57,44 @@
             android:textStyle="bold|italic" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@drawable/my_border"
+            android:textSize="16dp"
+            android:inputType="textPersonName"
+            android:text="Domain Name:" />
+
+        <EditText
+            android:id="@+id/myDomain"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="aseemsethi.duckdns.org"
+            android:inputType="textPersonName" />
+    </LinearLayout>
+
+
+
     <View
         android:layout_width="match_parent"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="50dp"
         android:layout_height="3dp"
         android:background="@android:color/holo_blue_light"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="50dp"
         android:gravity="center"
         android:orientation="horizontal">
 

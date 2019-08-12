@@ -39,7 +39,7 @@
                 android:text="Node ID" />
         </TableRow>
 
-        <View android:layout_height="20dp" />
+        <View android:layout_height="40dp" />
 
         <TableRow
             android:id="@+id/table_layout_row_1"
@@ -64,180 +64,21 @@
                 android:background="@drawable/rounded_corner_heading"
                 android:text="Temp" />
 
-            <Button
-                android:id="@+id/clearConfigB"
-                android:layout_width="0dip"
-                android:layout_column="2"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner_heading"
-                android:tooltipText="Use with Caution, Erases Device to factory mode, and remvoes all sensors from App"
-                android:text="ClrConfig" />
-
         </TableRow>
 
-        <View android:layout_height="10dp" />
+        <View android:layout_height="30dp" />
 
         <View
             android:layout_height="2dp"
             android:background="@color/colorPrimary" />
 
-        <View android:layout_height="10dp" />
+        <View android:layout_height="50dp" />
 
         <TableRow
             android:id="@+id/table_row_d"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </TableRow>
+            android:layout_height="wrap_content"></TableRow>
 
-        <View android:layout_height="10dp" />
-
-        <View
-            android:layout_height="2dp"
-            android:background="@color/colorPrimary" />
-
-        <View android:layout_height="10dp" />
-
-        <TableRow
-            android:id="@+id/table_layout_row_3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/config_b"
-                android:layout_width="0dip"
-                android:layout_column="0"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="Cfg" />
-
-            <Button
-                android:id="@+id/http_b"
-                android:layout_width="0dip"
-                android:layout_column="1"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="HTTP" />
-
-            <Button
-                android:id="@+id/health_b"
-                android:layout_width="0dip"
-                android:layout_column="2"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="Conn" />
-
-            <Button
-                android:id="@+id/mem_b"
-                android:layout_width="0dip"
-                android:layout_column="3"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="Mem" />
-
-            <Button
-                android:id="@+id/clear_b"
-                android:layout_width="0dip"
-                android:layout_column="4"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="Clr" />
-
-            <Button
-                android:id="@+id/mqtt_b"
-                android:layout_width="0dip"
-                android:layout_column="5"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_corner"
-                android:text="Mqtt" />
-        </TableRow>
-
-        <View android:layout_height="10dp" />
-        <View android:layout_height="2dp"
-            android:background="@color/colorPrimary" />
-        <View android:layout_height="10dp" />
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/wifi_val"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="#f5e8f3"
-                android:text="WiFi SSID"
-                android:layout_weight="1"
-                android:textColor="@color/colorPrimary" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="86dp">
-
-            <TextView
-                android:id="@+id/temp_val"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Temperature"
-                android:layout_weight="1"
-                android:textColor="@color/colorPrimary" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/http_val"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="#f5e8f3"
-                android:layout_weight="1"
-                android:text="HTTP"
-                android:textColor="@color/colorPrimary" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/mqtt_val"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_weight="1"
-                android:text="MQTT"
-                android:textColor="@color/colorPrimary" />
-        </TableRow>
-
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/config_val"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="10dp"
-                android:layout_weight="1"
-                android:background="#f5e8f3"
-                android:text="Config/Status:"
-                android:textColor="@color/colorPrimary" />
-        </TableRow>
+        <View android:layout_height="30dp" />
     </TableLayout>
-
-
 </RelativeLayout>

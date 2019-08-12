@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".notificationsActivity">
+
+     <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="5dp"
+        android:background="@android:color/holo_blue_light" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/my_border"
+            android:textStyle="bold"
+            android:text="Self IP Address:" />
+
+        <TextView
+            android:id="@+id/mrt_self_ipaddress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/my_border"
+            android:textStyle="bold"
+            android:text="Device IP Address:" />
+
+        <TextView
+            android:id="@+id/mrt_dev_ipaddress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/holo_blue_light" />
+
+    <TableLayout
+        android:id="@+id/table1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:padding="0dp"
+        android:shrinkColumns="*"
+        android:stretchColumns="*">
+
+        <TableRow
+            android:id="@+id/table_layout_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/configMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="0"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Cfg" />
+
+            <Button
+                android:id="@+id/httpMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="1"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="HTTP" />
+
+            <Button
+                android:id="@+id/healthMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Conn" />
+
+            <Button
+                android:id="@+id/memMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="3"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Mem" />
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+            <Button
+                android:id="@+id/clearMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="0"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Clr" />
+
+            <Button
+                android:id="@+id/mqttMRT_b"
+                android:layout_width="0dip"
+                android:layout_column="1"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Mqtt" />
+
+            <Button
+                android:id="@+id/clearConfigB"
+                android:layout_width="0dip"
+                android:layout_column="2"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2"
+                android:background="@drawable/rounded_corner_heading"
+                android:text="ClrConfig"
+                android:tooltipText="Use with Caution, Erases Device to factory mode, and remvoes all sensors from App" />
+
+        </TableRow>
+
+        <View android:layout_height="10dp" />
+        <View android:layout_height="2dp"
+            android:background="@color/colorPrimary" />
+        <View android:layout_height="10dp" />
+
+    </TableLayout>
+
+    <TextView
+        android:id="@+id/hosts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:inputType="textPersonName"
+        android:text="Logs:" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/mrt_recycler_view"
+        android:layout_width="368dp"
+        android:layout_height="400dp"
+        android:layout_margin="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:fillViewport="true"
+        android:scrollbars="vertical"
+        android:verticalScrollbarPosition="right"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    </android.support.v7.widget.RecyclerView>
+
+</LinearLayout>
+

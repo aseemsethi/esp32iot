@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_5 = 5; // for notificationStatus
     private final static int REQUEST_CODE_6 = 6; // for esptouch
     private final static int REQUEST_CODE_7 = 7; // for logs
+    private final static int REQUEST_CODE_8 = 8; // for mrt
     //final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
 
     private static final int REQUEST_WIFI = 1;
@@ -81,8 +82,7 @@ public class MainActivity extends AppCompatActivity
     };
     sensorT sensorStruct[];
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
-    private long lastTouchTime = 0;
-    private long currentTouchTime = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,38 +130,6 @@ public class MainActivity extends AppCompatActivity
                 startSendHttpRequestThread(uri);
             }
         });
-        final Button httpB = findViewById(R.id.http_b);
-        httpB.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                //mAdapter.add("Requesting HTTP Status..", Color.BLUE);
-                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + ":8080/check?http=1";
-                startSendHttpRequestThread(uri);
-            }
-        });
-        final Button mqttb = findViewById(R.id.mqtt_b);
-        mqttb.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                //mAdapter.add("Requesting MQTT Status..", Color.BLUE);
-                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + ":8080/check?mqtt=1";
-                startSendHttpRequestThread(uri);
-            }
-        });
         final Button tempb = findViewById(R.id.temp_b);
         tempb.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -178,109 +146,7 @@ public class MainActivity extends AppCompatActivity
                 startSendHttpRequestThread(uri);
             }
         });
-        final Button cfgb = findViewById(R.id.config_b);
-        cfgb.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                //mAdapter.add("Requesting Config..", Color.BLUE);
-                //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                String uri = "http://" + deviceAddress + ":8080/check?config=1";
-                startSendHttpRequestThread(uri);
-            }
-        });
-        final Button healthB = findViewById(R.id.health_b);
-        healthB.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                Log.d(TAG, "Pinging Server: " + deviceAddress);
-                pingServer(deviceAddress);
-            }
-        });
-        final Button memB = findViewById(R.id.mem_b);
-        memB.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                String uri = "http://" + deviceAddress + ":8080/check?mem=1";
-                startSendHttpRequestThread(uri);
-            }
-        });
-        final Button clearB = findViewById(R.id.clear_b);
-        clearB.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (deviceAddress.isEmpty()) {
-                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
-                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    return;
-                }
-                v.startAnimation(buttonClick);
-                TextView wifiVal = findViewById(R.id.config_val);
-                wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                wifiVal.setText("Config/Status: ");
-                TextView wifiVal1 = findViewById(R.id.wifi_val);
-                wifiVal1.setTypeface(null, Typeface.BOLD_ITALIC);
-                wifiVal1.setText("WiFi: ");
-                TextView httpVal = findViewById(R.id.http_val);
-                httpVal.setText("HTTP: ");
-                httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                TextView mqttVal = findViewById(R.id.mqtt_val);
-                mqttVal.setText("MQTT: ");
-                mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
-                TextView mqttVal1 = findViewById(R.id.temp_val);
-                mqttVal1.setText("Temp: ");
-                mqttVal1.setTypeface(null, Typeface.BOLD_ITALIC);
-            }
-        });
-        Button clearConfB = (Button) findViewById(R.id.clearConfigB);
-        clearConfB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < 250) {
-                    Log.d(TAG, "Double Click");
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-                } else {
-                    Log.d(TAG, "Single Click");
-                    return;
-                }
-                if (deviceAddress.isEmpty()) return;
-                Log.d(TAG, "Clearing Device config File and deleting all Sensors !!!");
-                deleteFile("esp32SensorNode");
-                String uri = "http://" + deviceAddress + ":8080/clear";
-                startSendHttpRequestThread(uri);
-            }
-        });
         /*
-        final Button clear = findViewById(R.id.clear_b);
-        clear.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.startAnimation(buttonClick);
-                mAdapter.clear();
-            }
-        });
-
         mRecyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -313,8 +179,6 @@ public class MainActivity extends AppCompatActivity
             serviceIntent.setAction(mqttService.MQTTMSG_ACTION);
             Log.d(TAG, "Starting mqttService");
             startForegroundService(serviceIntent);
-            //Log.d(TAG, "OnCreate: Register receivers"); -- this is done in resume
-            //registerServices();
         }
 
         // Read Sensors from file
@@ -498,30 +362,14 @@ public class MainActivity extends AppCompatActivity
     }
     public void updateView(String responseText) {
         Log.d(TAG, "Updating view");
-        if (responseText.contains("Config")) {
-            TextView c1 = findViewById(R.id.config_val);
-            c1.setTypeface(null, Typeface.BOLD_ITALIC);
-            c1.setText(responseText);
-        } else if (responseText.contains("WiFi")) {
-            TextView wifiVal = findViewById(R.id.wifi_val);
+        if (responseText.contains("WiFi")) {
+            TextView wifiVal = findViewById(R.id.wifi_b);
             wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
             wifiVal.setText(responseText);
-        } else if (responseText.contains("HTTP")) {
-            TextView httpVal = findViewById(R.id.http_val);
-            httpVal.setText(responseText);
-            httpVal.setTypeface(null, Typeface.BOLD_ITALIC);
-        } else if (responseText.contains("MQTT")) {
-            TextView mqttVal = findViewById(R.id.mqtt_val);
+         } else if (responseText.contains("Temp")) {
+            TextView mqttVal = findViewById(R.id.temp_b);
             mqttVal.setText(responseText);
             mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
-        } else if (responseText.contains("Temp")) {
-            TextView mqttVal = findViewById(R.id.temp_val);
-            mqttVal.setText(responseText);
-            mqttVal.setTypeface(null, Typeface.BOLD_ITALIC);
-        } else if (responseText.contains("Free Mem")) {
-            TextView v1 = findViewById(R.id.config_val);
-            v1.setText(responseText);
-            v1.setTypeface(null, Typeface.BOLD_ITALIC);
         }
     }
 
@@ -597,6 +445,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, LogsActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_7);
+        } else if (id == R.id.nav_mrt) {
+            Intent intent = new Intent(this, MRTActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_8);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -658,6 +510,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "No MQTT publish token set");
                         return;
                     }
+                    // 2:Round:Open : Sat Aug 10 12:14:20 2019:192.168.1.35:
                     Log.d(TAG, "Recvd mqtt token in main : " + mqtt_token);
                     //mqttHelper.subscribeToTopic(mqtt_token);
                     Context context = getApplicationContext();
@@ -861,46 +714,5 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return false;
-    }
-    /* private class MyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context arg0, Intent arg1) {
-            String msg = arg1.getStringExtra("MQTTRCV");
-            Log.d(TAG, "Recvd from Service: " + msg);
-            updateView(msg);
-        }
-    } */
-
-    private boolean pingServer(String url) {
-        int count = 0;
-        String str = null;
-        try {
-            Process process = null;
-            process = Runtime.getRuntime().exec(
-                    "/system/bin/ping -w 4 -c 3 " + url);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    process.getInputStream()));
-            StringBuffer output = new StringBuffer();
-            String temp;
-            while ( (temp = reader.readLine()) != null) {
-                output.append(temp);
-                count++;
-            }
-            reader.close();
-            if(count > 0)
-                str = output.toString();
-
-            process.destroy();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Log.d(TAG, "PING Count: " + count);
-        Log.d(TAG, "PING String" + str);
-        TextView wifiVal = findViewById(R.id.config_val);
-        wifiVal.setTypeface(null, Typeface.BOLD_ITALIC);
-        wifiVal.setText("Config/Status: " + str);
-        return true;
     }
 }

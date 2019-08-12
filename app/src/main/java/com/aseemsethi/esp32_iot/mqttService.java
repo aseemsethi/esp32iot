@@ -107,10 +107,14 @@ public class mqttService extends Service {
 
     boolean poilcyAllows(String msg) {
         String[] arrOfStr = msg.split(":", 4);
-        int id = parseWithDefault(arrOfStr[0], 0);
-        if (id == 0) {
+        int id = parseWithDefault(arrOfStr[0], 10);
+        if (id == 10) {
             Log.d(TAG, "Cannot associate BLE with a Sensor");
             return false;
+        }
+        if (id == 0) {
+            Log.d(TAG, "This is a test MQTT Msg...return true");
+            return true;
         }
         for (int i = 0; i < 9; i++) {
             if (sensorStruct[i].id == id) {
