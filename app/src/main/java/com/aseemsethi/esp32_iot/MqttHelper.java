@@ -21,7 +21,7 @@ public class MqttHelper {
     final String TAG = "ESP32IOT MQTT Helper";
 
     //final String serverUri = "tcp://broker.hivemq.com:1883";
-    final String serverUri = "tcp://iot.eclipse.org:1883";
+    final String serverUri = "tcp://mqtt.eclipse.org:1883";
 
     final String clientId = "ESP32";
     final String subscriptionTopic = "esp32sensor/+";
