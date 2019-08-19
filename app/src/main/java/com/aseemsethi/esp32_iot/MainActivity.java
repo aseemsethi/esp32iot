@@ -29,12 +29,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -82,7 +86,8 @@ public class MainActivity extends AppCompatActivity
     };
     sensorT sensorStruct[];
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
-
+    private long lastTouchTime = 0;
+    private long currentTouchTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,9 +206,46 @@ public class MainActivity extends AppCompatActivity
                     startService(serviceIntent);
                 }
             }
+            inputReader.close();
+            updateSensorStatus();
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
+    }
+
+    void updateSensorStatus() {
+        String inputString;
+        String lastLine = "";
+
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32Notifications")));
+            while ((inputString = inputReader.readLine()) != null) {
+                lastLine = inputString;
+            }
+        } catch (IOException e) { e.printStackTrace();}
+
+        String[] arrOfStr = lastLine.split(":", 4);
+        Log.d(TAG, "File msgs, lastLine: " + lastLine);
+        int id = parseWithDefault(arrOfStr[0], 0);
+        if (id == 0) {
+            Log.d(TAG, "Cannot associate BLE with Button");
+            return;
+        }
+        // MQTT Recvd: 3:Round:Closed : Fri Aug  9 22:09:32 2019:192.168.1.35:
+        Log.d(TAG, "lastLine id:" + id);
+        for (int i = 0; i < 9; i++) {
+            if (sensorStruct[i].id == id) {
+                Log.d(TAG, "Found the button");
+                sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
+                        + "\n" + arrOfStr[2]);
+                if ((arrOfStr[2].trim()).equals("Open"))
+                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
+                else
+                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                break;
+            }
+        }
     }
 
     @Override
@@ -543,9 +585,13 @@ public class MainActivity extends AppCompatActivity
                     serviceIntent.putExtra("notifyOn", notifyOn);
                     startService(serviceIntent);
 
-                    Log.d(TAG, "Recvd Sensor info: " + sensorName + " : " +
+                    Log.d(TAG, "Recvd Sensor from SensorActivity: " + sensorName + " : " +
                             sensorTag + ":" + id);
-                    addButton(sensorName, sensorTag, id, notifyOn);
+                    if (addButton(sensorName, sensorTag, id, notifyOn) == false) {
+                        Log.d(TAG, "Sensor already added by addButton");
+                        return;
+                    }
+                    Log.d(TAG, "Save Sensor from SensorActivity in file..");
                     FileOutputStream fos;
                     try {
                         fos = openFileOutput("esp32SensorNode", Context.MODE_APPEND);
@@ -561,16 +607,17 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    void addButton(String sensorName, String sensorTag, int id, String notifyOn) {
+    boolean addButton(String sensorName, String sensorTag, final int id, String notifyOn) {
         for (int i = 0; i < 9; i++) {
             if (sensorStruct[i].sensorName == sensorName ||
                     sensorStruct[i].id == id ||
                     sensorStruct[i].sensorTag == sensorTag) {
-                Log.d(TAG, "Sensor already added    !!!!"); return;
+                Log.d(TAG, "Sensor already added    !!!!");
+                return false;
             }
         }
         final Button btn = new Button(this);
-        btn.setText(sensorName);
+        btn.setText(sensorName + ":" + id);
         btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
         btn.setId(id);
         btn.setBackgroundResource(R.drawable.sensor);
@@ -578,17 +625,89 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 v.startAnimation(buttonClick);
-                Log.d(TAG, "btn clicked");
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 250) {
+                    Log.d(TAG, "Double Click");
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+                } else {
+                    Log.d(TAG, "Single Click");
+                    return;
+                }
+                Log.d(TAG, "delete btn clicked: " + btn.getId());
+
+                FileOutputStream fos = null;
+                try {
+                    fos = openFileOutput("tempFileT", Context.MODE_PRIVATE);
+                } catch (FileNotFoundException e) {e.printStackTrace();}
+                catch (IOException e) {e.printStackTrace();}
+
+                try {
+                    BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                            openFileInput("esp32SensorNode")));
+                    String inputString;
+                    while ((inputString = inputReader.readLine()) != null) {
+                        String str = inputString;
+                        String[] arrOfStr = str.split(":", 4);
+                        Log.d(TAG, "Reading Sensor Node from file: " + str);
+                        if (arrOfStr[0] != null) {
+                            int idFile = Integer.parseInt(arrOfStr[2]);
+                            if (id == idFile) {
+                                Log.d(TAG, "Found ID to delete:" + idFile);
+                            } else {
+                                Log.d(TAG, "Writing: " + inputString);
+                                fos.write(inputString.getBytes());
+                                fos.write("\n".getBytes());                            }
+                        }
+                    }
+                    fos.close();
+                    inputReader.close();
+                    //deleteFile("esp32SensorNode");
+                    File outFile = new File(getFilesDir() + "/tempFileT");
+                    File oldFile = new File(getFilesDir() + "/esp32SensorNode");
+                    //Directory: /data/user/0/com.aseemsethi.esp32_iot/files
+                    Log.d(TAG, "Directory: " + getFilesDir());
+                    Log.d(TAG, "Rename Files: " + outFile.getAbsolutePath() +
+                            ":" + oldFile.getAbsolutePath());
+                    if (outFile.exists()) {
+                        boolean ret = outFile.renameTo(oldFile);
+                        if (ret)
+                            Log.d(TAG, "File successfully renamed");
+                        else
+                            Log.d(TAG, "File not renamed !!");
+                    } else
+                        Log.d(TAG, "new sensor file not created !!");
+                } catch (IOException e) { e.printStackTrace(); Log.d(TAG, "File error");}
+
+                // Now delete this Sensor from sensorStruct too, so it can be added later to the
+                // file by again going to SensorActivity. Else, it will not be written to file
+                // if sensorStruct has this data.
+                sensorStruct[id] = new sensorT();
+                v.setVisibility(View.GONE);
             }
         });
-        TableRow tr = findViewById(R.id.table_row_d);
+        TableRow tr = null;
+        //TableLayout tl = (TableLayout) findViewById(R.id.table1);
+            tr = findViewById(R.id.table_row_d);
+            /*   tr = new TableRow(this);
+            tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT));
+            btn.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT));
+                    */
         tr.addView(btn);
+        //tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT,
+        //        TableLayout.LayoutParams.WRAP_CONTENT));
+
         // Save this into a structure, that needs to also go into a file.
         sensorStruct[id].id = id;
         sensorStruct[id].btn = btn;
         sensorStruct[id].sensorName = sensorName;
         sensorStruct[id].sensorTag = sensorTag;
         sensorStruct[id].notifyOn = notifyOn;
+        return true;
     }
 
     @Override
@@ -683,7 +802,8 @@ public class MainActivity extends AppCompatActivity
                     if (sensorStruct[i].id == id) {
                         Log.d(TAG, "Found the button");
                         sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
-                                + "\n" + arrOfStr[2]);
+                                + id
+                                + "\n\n" + arrOfStr[2]);
                         if ((arrOfStr[2].trim()).equals("Open"))
                             sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
                         else

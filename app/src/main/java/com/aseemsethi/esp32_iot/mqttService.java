@@ -94,7 +94,7 @@ public class mqttService extends Service {
                     String msg = mqttMessage.toString() + ":" + counter + "\n";
                     fos = openFileOutput("esp32Notifications", Context.MODE_APPEND);
                     fos.write(msg.getBytes());
-                    fos.write(":".getBytes());
+                    //fos.write(":".getBytes());
                     fos.close();
                 } catch (FileNotFoundException e) {e.printStackTrace();}
                 catch (IOException e) {e.printStackTrace();}
