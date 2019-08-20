@@ -106,7 +106,7 @@
                 android:layout_marginRight="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_corner"
-                android:text="Conn" />
+                android:text="Ping" />
 
             <Button
                 android:id="@+id/memMRT_b"
@@ -146,7 +146,8 @@
                 android:layout_marginRight="5dp"
                 android:layout_weight="2"
                 android:background="@drawable/rounded_corner_heading"
-                android:text="ClrConfig"
+                android:textColor="#F00"
+                android:text="Reset"
                 android:tooltipText="Use with Caution, Erases Device to factory mode, and remvoes all sensors from App" />
 
         </TableRow>

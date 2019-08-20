@@ -41,6 +41,7 @@ public class mqttService extends Service {
     final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
     final static String MQTTUPDATE_SENSOR_ACTION = "MQTTUPDATE_SENSOR_ACTION";
+    final static String MQTTDELETE_SENSOR_ACTION = "MQTTDELETE_SENSOR_ACTION";
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     final String TAG = "ESP32IOT mqttService";
     NotificationManager mNotificationManager;
@@ -139,6 +140,7 @@ public class mqttService extends Service {
     }
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action;
+        int id;
 
         Log.d(TAG, "Started mqttService");
         if (intent == null) {
@@ -167,13 +169,24 @@ public class mqttService extends Service {
             case MQTTSUBSCRIBE_ACTION:
                 mqtt_token = intent.getStringExtra("topic");
                 Log.d(TAG, "Recvd MQTT Token to subscribe: " + mqtt_token);
-                mqttHelper.subscribeToTopic(mqtt_token);
+                mqttHelper.subscribeToTopic(mqtt_token); break;
             case MQTTUPDATE_SENSOR_ACTION:
-                int id = intent.getIntExtra("id", 0);
+                id = intent.getIntExtra("id", 0);
                 String notifyOn = intent.getStringExtra("notifyOn");
-                Log.d(TAG, "Recvd Sensor info from Main: " + id + ":" + notifyOn);
+                Log.d(TAG, "Recvd Sensor info from Main MQTTUPDATE_SENSOR_ACTION: " +
+                        id + ":" + notifyOn);
                 sensorStruct[id].id = id;
                 sensorStruct[id].notifyOn = notifyOn;
+                break;
+            case MQTTDELETE_SENSOR_ACTION:
+                id = intent.getIntExtra("id", 0);
+                Log.d(TAG, "Recvd Sensor info from Main MQTTDELETE_SENSOR_ACTION:" + id);
+                for (int i = 0; i < 9; i++) {
+                    if (sensorStruct[i].id == id) {
+                        Log.d(TAG, "Deleting Sensor: " + id);
+                        sensorStruct[i] = new sensorT();
+                    }
+                }
         }
         return START_STICKY;
     }

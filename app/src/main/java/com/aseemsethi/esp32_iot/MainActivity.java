@@ -685,6 +685,13 @@ public class MainActivity extends AppCompatActivity
                 // file by again going to SensorActivity. Else, it will not be written to file
                 // if sensorStruct has this data.
                 sensorStruct[id] = new sensorT();
+                // Send a msg to MqttService to delete this Sensor from its DB too
+                // TBD
+                Context context = getApplicationContext();
+                Intent serviceIntent = new Intent(context, mqttService.class);
+                serviceIntent.setAction(mqttService.MQTTDELETE_SENSOR_ACTION);
+                serviceIntent.putExtra("id", id);
+                startService(serviceIntent);
                 v.setVisibility(View.GONE);
             }
         });
