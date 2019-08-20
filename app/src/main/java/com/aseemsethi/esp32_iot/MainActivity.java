@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity
         for (int i = 0; i < 9; i++) {
             if (sensorStruct[i].id == id) {
                 Log.d(TAG, "Found the button");
-                sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
+                sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":" + id
                         + "\n" + arrOfStr[2]);
                 if ((arrOfStr[2].trim()).equals("Open"))
                     sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
@@ -637,6 +637,7 @@ public class MainActivity extends AppCompatActivity
                     return;
                 }
                 Log.d(TAG, "delete btn clicked: " + btn.getId());
+                int id = btn.getId();
 
                 FileOutputStream fos = null;
                 try {
@@ -695,19 +696,14 @@ public class MainActivity extends AppCompatActivity
                 v.setVisibility(View.GONE);
             }
         });
-        TableRow tr = null;
-        //TableLayout tl = (TableLayout) findViewById(R.id.table1);
-            tr = findViewById(R.id.table_row_d);
-            /*   tr = new TableRow(this);
-            tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT,
-                    TableRow.LayoutParams.WRAP_CONTENT));
-            btn.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT,
-                    TableRow.LayoutParams.WRAP_CONTENT));
-                    */
-        tr.addView(btn);
-        //tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT,
-        //        TableLayout.LayoutParams.WRAP_CONTENT));
-
+        TableLayout tl = (TableLayout) findViewById(R.id.table1);
+        TableRow tr = new TableRow(this);
+        // Set new table row layout parameters.
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT);
+        tr.setLayoutParams(layoutParams);
+        tr.addView(btn, 0);
+        tl.addView(tr);
         // Save this into a structure, that needs to also go into a file.
         sensorStruct[id].id = id;
         sensorStruct[id].btn = btn;
