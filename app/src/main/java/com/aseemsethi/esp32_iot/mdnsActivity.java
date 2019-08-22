@@ -138,6 +138,20 @@ public class mdnsActivity extends AppCompatActivity {
                 finish();
             }
         });
+        Button myDevIPB = (Button) findViewById(R.id.setmyIP);
+        myDevIPB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText myDevIP = (EditText) findViewById(R.id.devIP);
+                String myDevIPVal = myDevIP.getText().toString();
+                Log.d(TAG, "Dev IP Selected: " + myDevIPVal);
+                mRPiAddress = myDevIPVal;
+                Intent intent = new Intent();
+                intent.putExtra("DomainAddress", mRPiAddress);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
         // Wait till thread above completes
         // hostsF.setText(subnetList.toString());
         mRecyclerView = (RecyclerView) findViewById(R.id.iot_recycler_view);

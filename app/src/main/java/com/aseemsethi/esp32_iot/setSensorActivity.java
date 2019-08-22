@@ -46,7 +46,8 @@ public class setSensorActivity extends AppCompatActivity {
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
     private Handler uiUpdater = null;
     String ipaddressDevice;
-
+    String sensorNameS, sensorTagS, notifyOnS, startTimeS, endTimeS, bleIDS;
+    boolean sensorSaved = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,45 +61,16 @@ public class setSensorActivity extends AppCompatActivity {
         ipaddressDevice = message;
         Log.d(TAG, "SetSensor called with Device Address: " + ipaddressDevice);
 
-        Button save = (Button) findViewById(R.id.saveSensorT);
-        save.setOnClickListener(new View.OnClickListener() {
+        Button ret = (Button) findViewById(R.id.returnSensorT);
+        ret.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.startAnimation(buttonClick);
-                EditText sensorName = findViewById(R.id.sensorNameT);
-                String sensorNameS = (sensorName).getText().toString();
-                EditText sensorTag = findViewById(R.id.sensorTagT);
-                String sensorTagS = (sensorTag).getText().toString();
-                EditText notifyOn = findViewById(R.id.notifyOn);
-                String notifyOnS = (notifyOn).getText().toString();
-                EditText startTime = findViewById(R.id.startTime);
-                String startTimeS = (startTime).getText().toString();
-                EditText endTime = findViewById(R.id.endTime);
-                String endTimeS = (endTime).getText().toString();
-                EditText bleID = findViewById(R.id.bleID);
-                String bleIDS = (bleID).getText().toString();
-                // Store Sensor in File
-                // FileOutputStream fos;
-                //try {
-                    /*
-                    fos = openFileOutput("esp32configTags", Context.MODE_APPEND);
-                    fos.write(sensorNameS.getBytes());
-                    fos.write(":".getBytes());
-                    fos.write(sensorTagS.getBytes());
-                    fos.write("\n".getBytes());
-                    Log.d(TAG, "Saving Sensor to file" + sensorNameS + ":" + sensorTagS);
-                    fos.close();
-                    */
-                    mAdapter.add(sensorNameS + ":" + sensorTagS, Color.BLUE);
-                    mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-                    String uri = "http://" + ipaddressDevice + ":8080/enable?ble="+
-                            sensorNameS + ":" + sensorTagS + ":" + notifyOnS + ":" +
-                            startTimeS + ":" + endTimeS + ":" + bleIDS;
-                    Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
-                    startSendHttpRequestThread(uri);
-                //} catch (FileNotFoundException e) {e.printStackTrace();}
-                //catch (IOException e) {e.printStackTrace();}
-
+                if (sensorSaved == false) {
+                    Log.d(TAG, "Not returning any sensor data to Main");
+                    finish();
+                    return;
+                }
                 Intent intent = new Intent();
                 Log.d(TAG, "Send Sensor info: " + sensorNameS + " : " + sensorTagS);
                 intent.putExtra("sensorName", sensorNameS);
@@ -110,6 +82,49 @@ public class setSensorActivity extends AppCompatActivity {
 
                 setResult(RESULT_OK, intent);
                 finish();
+            }
+        });
+
+        Button save = (Button) findViewById(R.id.saveSensorT);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(buttonClick);
+                EditText sensorName = findViewById(R.id.sensorNameT);
+                sensorNameS = (sensorName).getText().toString();
+                EditText sensorTag = findViewById(R.id.sensorTagT);
+                sensorTagS = (sensorTag).getText().toString();
+                EditText notifyOn = findViewById(R.id.notifyOn);
+                notifyOnS = (notifyOn).getText().toString();
+                EditText startTime = findViewById(R.id.startTime);
+                startTimeS = (startTime).getText().toString();
+                EditText endTime = findViewById(R.id.endTime);
+                endTimeS = (endTime).getText().toString();
+                EditText bleID = findViewById(R.id.bleID);
+                bleIDS = (bleID).getText().toString();
+
+                mAdapter.add(sensorNameS + ":" + sensorTagS, Color.BLUE);
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                String uri = "http://" + ipaddressDevice + ":8080/enable?ble=" +
+                        sensorNameS + ":" + sensorTagS + ":" + notifyOnS + ":" +
+                        startTimeS + ":" + endTimeS + ":" + bleIDS;
+                Log.d(TAG, "Sending BLE URI Enable to Device: " + uri);
+                startSendHttpRequestThread(uri);
+
+                /*
+                Intent intent = new Intent();
+                Log.d(TAG, "Send Sensor info: " + sensorNameS + " : " + sensorTagS);
+                intent.putExtra("sensorName", sensorNameS);
+                intent.putExtra("sensorTag", sensorTagS);
+                intent.putExtra("notifyOn", notifyOnS);
+                intent.putExtra("startTime", startTimeS);
+                intent.putExtra("endTime", endTimeS);
+                intent.putExtra("bleID", bleIDS);
+
+                setResult(RESULT_OK, intent);
+                finish();
+                */
+                view.setClickable(false);
             }
         });
         mRecyclerView = (RecyclerView) findViewById(R.id.sensor_recycler_view);
@@ -190,8 +205,8 @@ public class setSensorActivity extends AppCompatActivity {
                     // Set http request method to get.
                     httpConn.setRequestMethod("GET");
                     // Set connection timeout and read timeout value.
-                    httpConn.setConnectTimeout(20000);
-                    httpConn.setReadTimeout(20000);
+                    httpConn.setConnectTimeout(10000);
+                    httpConn.setReadTimeout(10000);
                     // Get input stream from web url connection.
                     InputStream inputStream = httpConn.getInputStream();
                     // Create input stream reader based on url connection input stream.
@@ -209,16 +224,11 @@ public class setSensorActivity extends AppCompatActivity {
                     }
                     // Send message to main thread to update response text in TextView after read all.
                     Message message = new Message();
-                    // Set message type.
                     message.what = REQUEST_WIFI;
-                    // Create a bundle object.
                     Bundle bundle = new Bundle();
-                    // Put response text in the bundle with the special key.
                     bundle.putString(KEY_RESPONSE_TEXT, readTextBuf.toString());
-                    // Set bundle data in message.
                     message.setData(bundle);
-                    Log.d(TAG, "Recvd HTTP Msg: " + readTextBuf.toString());
-                    // Send message to main thread Handler to process.
+                    Log.d(TAG, "setSensor: Recvd HTTP Msg: " + readTextBuf.toString());
                     uiUpdater.sendMessage(message);
                 } catch(MalformedURLException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
@@ -238,6 +248,14 @@ public class setSensorActivity extends AppCompatActivity {
                             httpConn.disconnect();
                             httpConn = null;
                         }
+                        // Send message to main thread to update response text in TextView after read all.
+                        Message message = new Message();
+                        message.what = REQUEST_WIFI;
+                        Bundle bundle = new Bundle();
+                        bundle.putString(KEY_RESPONSE_TEXT, "HTTP Failed");
+                        message.setData(bundle);
+                        Log.d(TAG, "setSensor: Failed in HTTP: ");
+                        uiUpdater.sendMessage(message);
                     } catch (IOException ex) {
                         Log.e(TAG, ex.getMessage(), ex);
                     }
@@ -255,12 +273,24 @@ public class setSensorActivity extends AppCompatActivity {
             uiUpdater = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
+                    Log.d(TAG, "setSensor:...recvd msg:1" +
+                            msg.getData().get(KEY_RESPONSE_TEXT));
                     if (msg.what == REQUEST_WIFI) {
+                        Log.d(TAG, "...recvd msg:2");
                         Bundle bundle = msg.getData();
                         if (bundle != null) {
                             String responseText = bundle.getString(KEY_RESPONSE_TEXT);
                             mAdapter.add(responseText, Color.BLUE);
                             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                            String s = (String) msg.getData().get(KEY_RESPONSE_TEXT);
+                            if (s.contains("HTTP Params applied")) {
+                                Log.d(TAG, "setSensor on device: Success");
+                                sensorSaved = true;
+                            } else {
+                                Log.d(TAG, "setSensor on device: Failed");
+                                Button save = (Button) findViewById(R.id.saveSensorT);
+                                save.setClickable(true);
+                            }
                         }
                     }
                 }

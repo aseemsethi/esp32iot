@@ -174,11 +174,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="30dp"
+            android:layout_marginRight="40dp"
             android:textColor="#672edf"
             android:textStyle="bold|italic"
             android:paddingHorizontal="10dp"
             android:background="@drawable/rounded_corner"
             android:text="Save" />
+
+        <Button
+            android:id="@+id/returnSensorT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:textColor="#672edf"
+            android:textStyle="bold|italic"
+            android:paddingHorizontal="10dp"
+            android:background="@drawable/rounded_corner"
+            android:text="Return" />
     </LinearLayout>
 
 </LinearLayout>

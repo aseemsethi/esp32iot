@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity
             if (sensorStruct[i].id == id) {
                 Log.d(TAG, "Found the button");
                 sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":" + id
-                        + "\n" + arrOfStr[2]);
+                        + "\n\n" + arrOfStr[2]);
                 if ((arrOfStr[2].trim()).equals("Open"))
                     sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
                 else
@@ -665,7 +665,6 @@ public class MainActivity extends AppCompatActivity
                     }
                     fos.close();
                     inputReader.close();
-                    //deleteFile("esp32SensorNode");
                     File outFile = new File(getFilesDir() + "/tempFileT");
                     File oldFile = new File(getFilesDir() + "/esp32SensorNode");
                     //Directory: /data/user/0/com.aseemsethi.esp32_iot/files
