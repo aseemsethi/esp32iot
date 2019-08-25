@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -29,6 +30,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -45,7 +47,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 
 // How to import esptouch module.
 // File --> New --> Import Module - point this to the esptouch directory locally downloaded
@@ -77,12 +80,18 @@ public class MainActivity extends AppCompatActivity
     //MyReceiver myReceiver;
     BroadcastReceiver myReceiverMqtt = null;
     BroadcastReceiver myReceiverMqttMsg = null;
+    private final static int OPEN_CODE=0;
+    private final static int CLOSE_CODE=1;
+    private final static int UNKNOWN_CODE=2;
+    private final static int SENSOR_COUNT=10;
+
     private class sensorT {
         public String sensorName;
         public String sensorTag;
         public String notifyOn;
         public int    id;
         Button        btn;
+        int status_code;  // OPEN or CLOSE CODE
     };
     sensorT sensorStruct[];
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
@@ -95,9 +104,10 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        sensorStruct = new sensorT[10];
-        for (int i = 0; i < 9; i++) {
+        sensorStruct = new sensorT[SENSOR_COUNT];
+        for (int i = 0; i < SENSOR_COUNT; i++) {
             sensorStruct[i] = new sensorT();
+            sensorStruct[i].status_code = UNKNOWN_CODE;
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -186,6 +196,8 @@ public class MainActivity extends AppCompatActivity
             startForegroundService(serviceIntent);
         }
 
+        DBHandler dbHandler = new DBHandler(MainActivity.this);
+
         // Read Sensors from file
         try {
             BufferedReader inputReader = new BufferedReader(new InputStreamReader(
@@ -196,7 +208,10 @@ public class MainActivity extends AppCompatActivity
                 String[] arrOfStr = str.split(":", 4);
                 Log.d(TAG, "Read Sensor Node from file: " + str);
                 if (arrOfStr[0] != null) {
-                    addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]), arrOfStr[3]);
+                    addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]),
+                            arrOfStr[3]);
+                    dbHandler.insertSensorDetails(Integer.parseInt(arrOfStr[2]),
+                            arrOfStr[0], "Close");
                     // Update the MQTT service for its policies on notification
                     Context context = getApplicationContext();
                     Intent serviceIntent = new Intent(context, mqttService.class);
@@ -208,12 +223,14 @@ public class MainActivity extends AppCompatActivity
             }
             inputReader.close();
             updateSensorStatus();
+
         } catch (IOException e) { e.printStackTrace();}
 
         initControls();
     }
 
     void updateSensorStatus() {
+        /*
         String inputString;
         String lastLine = "";
 
@@ -244,6 +261,34 @@ public class MainActivity extends AppCompatActivity
                 else
                     sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
                 break;
+            }
+        }
+        */
+        DBHandler db = new DBHandler(this);
+        Log.d(TAG, "Print out the Sensor SQLite DB");
+        ArrayList<HashMap<String, String>> sensorList = db.GetSensors();
+        Log.d(TAG, sensorList.toString());
+
+        for (int i = 1; i < SENSOR_COUNT; i++) {
+            if (sensorStruct[i].id == i) {
+                Log.d(TAG, "OnCreate: Found sensor in sensorStruct:" + i);
+
+                HashMap<String, String> sensorT =
+                        db.GetSensorBySensorId(i);
+                if (sensorT != null) {
+                    Log.d(TAG, "OnCreate: Found sensor in sensorDB: Status: " +
+                            sensorT.get("status"));
+                    sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":" + i
+                            + "\n\n" + sensorT.get("status"));
+                }
+                String st = sensorT.get("status");
+                if (st.trim().equals("Open")) {
+                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
+                } else if (st.trim().equals("Close")) {
+                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                } else {
+                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                }
             }
         }
     }
@@ -616,11 +661,22 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         }
+
+        TableLayout tl = (TableLayout) findViewById(R.id.table1);
+        TableRow tr = new TableRow(this);
+        // Set new table row layout parameters.
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(5,5,5,5);
+        tr.setLayoutParams(layoutParams);
         final Button btn = new Button(this);
-        btn.setText(sensorName + ":" + id);
         btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
+        btn.setText(sensorName + ":" + id);
+        //btn.setGravity(Gravity.CENTER_VERTICAL);
         btn.setId(id);
         btn.setBackgroundResource(R.drawable.sensor);
+        tr.addView(btn, 0);
+        tl.addView(tr);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -695,14 +751,6 @@ public class MainActivity extends AppCompatActivity
                 v.setVisibility(View.GONE);
             }
         });
-        TableLayout tl = (TableLayout) findViewById(R.id.table1);
-        TableRow tr = new TableRow(this);
-        // Set new table row layout parameters.
-        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT);
-        tr.setLayoutParams(layoutParams);
-        tr.addView(btn, 0);
-        tl.addView(tr);
         // Save this into a structure, that needs to also go into a file.
         sensorStruct[id].id = id;
         sensorStruct[id].btn = btn;
@@ -798,18 +846,31 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "Cannot associate BLE with Button");
                     return;
                 }
-                // MQTT Recvd: 3:Round:Closed : Fri Aug  9 22:09:32 2019:192.168.1.35:
+                // MQTT Recvd: 3:Round:Close : Fri Aug  9 22:09:32 2019:192.168.1.35:
                 Log.d(TAG, "MQTT Msg recv in main: " + msg + ",  id:" + id);
                 for (int i = 0; i < 9; i++) {
                     if (sensorStruct[i].id == id) {
-                        Log.d(TAG, "Found the button");
+                        Log.d(TAG, "Found sensor in sensorStruct");
+                        DBHandler db = new DBHandler(context);
+                        HashMap<String, String> sensorList =
+                                db.GetSensorBySensorId(id);
+                        if (sensorList != null) {
+                            Log.d(TAG, "Found sensor in sensorDB: Status: " +
+                                    sensorList.get("status"));
+                            int count = db.UpdateSensorDetails(arrOfStr[2], id);
+                            Log.d(TAG, "Print out the Sensor SQLite DB");
+                            ArrayList<HashMap<String, String>> sensorL = db.GetSensors();
+                            Log.d(TAG, sensorL.toString());
+                        }
                         sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
-                                + id
-                                + "\n\n" + arrOfStr[2]);
-                        if ((arrOfStr[2].trim()).equals("Open"))
+                                + id + "\n\n" + arrOfStr[2]);
+                        if ((arrOfStr[2].trim()).equals("Open")) {
+                            sensorStruct[i].status_code = OPEN_CODE;
                             sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
-                        else
+                        } else {
+                            sensorStruct[i].status_code = CLOSE_CODE;
                             sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
+                        }
                         break;
                     }
                 }

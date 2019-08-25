@@ -66,6 +66,8 @@ public class setSensorActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 view.startAnimation(buttonClick);
+                returnSensorInfo();
+                /*
                 if (sensorSaved == false) {
                     Log.d(TAG, "Not returning any sensor data to Main");
                     finish();
@@ -81,6 +83,7 @@ public class setSensorActivity extends AppCompatActivity {
                 intent.putExtra("bleID", bleIDS);
 
                 setResult(RESULT_OK, intent);
+                */
                 finish();
             }
         });
@@ -151,6 +154,25 @@ public class setSensorActivity extends AppCompatActivity {
         */
     }
 
+    public void returnSensorInfo() {
+        if (sensorSaved == false) {
+            Log.d(TAG, "Not returning any sensor data to Main");
+            finish();
+            return;
+        }
+        Intent intent = new Intent();
+        Log.d(TAG, "Send Sensor info: " + sensorNameS + " : " + sensorTagS);
+        intent.putExtra("sensorName", sensorNameS);
+        intent.putExtra("sensorTag", sensorTagS);
+        intent.putExtra("notifyOn", notifyOnS);
+        intent.putExtra("startTime", startTimeS);
+        intent.putExtra("endTime", endTimeS);
+        intent.putExtra("bleID", bleIDS);
+
+        setResult(RESULT_OK, intent);
+    }
+
+
     @Override
     public boolean onCreateOptionsMenu (Menu menu){
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -183,9 +205,12 @@ public class setSensorActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.d(TAG, "Back button pressed from Sensor Activity");
+        returnSensorInfo();
         finish();
     }
-    /* Start a thread to send http request to web server use HttpURLConnection object. */
+    /* Start a thread to send http request to web server use HttpURLConnection object.
+     * openConnection() just creates a new Socket. The actual Connect doesn't happen
+      * until getInputStream() */
     private void startSendHttpRequestThread(final String reqUrl) {
         Thread sendHttpRequestThread = new Thread(){
             @Override public void run() {
@@ -234,6 +259,14 @@ public class setSensorActivity extends AppCompatActivity {
                     Log.e(TAG, ex.getMessage(), ex);
                 } catch(IOException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
+                    // Send message to main thread to update response text in TextView after read all.
+                    Message message = new Message();
+                    message.what = REQUEST_WIFI;
+                    Bundle bundle = new Bundle();
+                    bundle.putString(KEY_RESPONSE_TEXT, "HTTP Failed");
+                    message.setData(bundle);
+                    Log.d(TAG, "setSensor: Failed in HTTP: ");
+                    uiUpdater.sendMessage(message);
                 } finally {
                     try {
                         if (bufReader != null) {
@@ -248,14 +281,6 @@ public class setSensorActivity extends AppCompatActivity {
                             httpConn.disconnect();
                             httpConn = null;
                         }
-                        // Send message to main thread to update response text in TextView after read all.
-                        Message message = new Message();
-                        message.what = REQUEST_WIFI;
-                        Bundle bundle = new Bundle();
-                        bundle.putString(KEY_RESPONSE_TEXT, "HTTP Failed");
-                        message.setData(bundle);
-                        Log.d(TAG, "setSensor: Failed in HTTP: ");
-                        uiUpdater.sendMessage(message);
                     } catch (IOException ex) {
                         Log.e(TAG, ex.getMessage(), ex);
                     }

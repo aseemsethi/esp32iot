@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="50dp"
-        android:paddingBottom="20dp"
+        android:paddingBottom="70dp"
         android:shrinkColumns="*"
         android:stretchColumns="*">
 
@@ -72,12 +72,12 @@
 
         </TableRow>
 
-        <View android:layout_height="30dp" />
+        <View android:layout_height="20dp" />
 
         <View
             android:layout_height="2dp"
             android:background="@color/colorPrimary" />
-        <View android:layout_height="20dp" />
+        <View android:layout_height="10dp" />
     </TableLayout>
     </ScrollView>
 </RelativeLayout>

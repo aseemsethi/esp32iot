@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
 android:innerRadius="4dp"
 android:shape="ring"
-android:thickness="40dp"
+android:thickness="50dp"
 android:useLevel="false">
 <gradient
     android:angle="0"
@@ -13,7 +13,7 @@ android:useLevel="false">
     android:endColor="#63b8ff"
     android:gradientRadius="120"
     android:type="sweep"/>
-<padding android:bottom="50dp"
+<padding android:bottom="90dp"
     android:left="6dp"
     android:right="6dp"
     android:top="30dp"/>
