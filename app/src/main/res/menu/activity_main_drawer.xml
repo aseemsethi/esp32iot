@@ -21,6 +21,10 @@
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Set Sensors" />
         <item
+            android:id="@+id/nav_camera"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Add Camera" />
+        <item
             android:id="@+id/nav_mqtt"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Set MQTT Topic" />

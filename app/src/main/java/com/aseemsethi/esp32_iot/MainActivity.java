@@ -34,6 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -50,13 +51,21 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
+
 // How to import esptouch module.
 // File --> New --> Import Module - point this to the esptouch directory locally downloaded
 // from https://github.com/EspressifApp/EsptouchForAndroid
 // In gradle file add a line - implementation project(':esptouch')
 // In settings.gradle - modify to : include ':app', ':esptouch'
+//
+// ONVIF - https://github.com/vardang/onvif/blob/master/app/build.gradle
+// Use implements OnvifListener, and add
+// implementation 'com.rvirin.onvif:onvifcamera:1.1.8' to gradle app
+// and import the Onvif statements.
+// Add in build.gradle - classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener  {
     final String TAG = "ESP32IOT MainActivity";
     private final static int REQUEST_CODE_1 = 1; // for mDNS
     private final static int REQUEST_CODE_2 = 2; // for push notifications
@@ -66,7 +75,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_6 = 6; // for esptouch
     private final static int REQUEST_CODE_7 = 7; // for logs
     private final static int REQUEST_CODE_8 = 8; // for mrt
-    //final static String MQTTMSG_ACTION = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_ACTION";
+    private final static int REQUEST_CODE_9 = 9; // for addCamera
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -272,7 +281,6 @@ public class MainActivity extends AppCompatActivity
         for (int i = 1; i < SENSOR_COUNT; i++) {
             if (sensorStruct[i].id == i) {
                 Log.d(TAG, "OnCreate: Found sensor in sensorStruct:" + i);
-
                 HashMap<String, String> sensorT =
                         db.GetSensorBySensorId(i);
                 if (sensorT != null) {
@@ -536,6 +544,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, MRTActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_8);
+        } else if (id == R.id.nav_camera) {
+            Intent intent = new Intent(this, AddCameraActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_9);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

@@ -25,6 +25,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.content.ContentValues.TAG;
 
@@ -50,12 +52,17 @@ public class mqttService extends Service {
     MqttHelper mqttHelper;
     String mqtt_token = "";
     static int counter = 0;
+    private final static int OPEN_CODE=0;
+    private final static int CLOSE_CODE=1;
+    private final static int UNKNOWN_CODE=2;
+    private final static int SENSOR_COUNT=10;
     private class sensorT {
         public String sensorName;
         public String sensorTag;
         public String notifyOn;
         public int    id;
         Button btn;
+        int status_code;  // OPEN or CLOSE CODE
     };
     sensorT sensorStruct[];
 
@@ -93,12 +100,14 @@ public class mqttService extends Service {
                 FileOutputStream fos;
                 try {
                     String msg = mqttMessage.toString() + ":" + counter + "\n";
+                    ///data/user/0/com.aseemsethi.esp32_iot/files/esp32Notifications
                     fos = openFileOutput("esp32Notifications", Context.MODE_APPEND);
                     fos.write(msg.getBytes());
-                    //fos.write(":".getBytes());
                     fos.close();
+                    Log.d(TAG, "Written msg to Notifications: " + msg);
                 } catch (FileNotFoundException e) {e.printStackTrace();}
                 catch (IOException e) {e.printStackTrace();}
+                updateDB(mqttMessage.toString());
             }
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
@@ -106,10 +115,39 @@ public class mqttService extends Service {
         });
     }
 
+    void updateDB(String msg) {
+        String[] arrOfStr = msg.split(":", 4);
+        int id = parseWithDefault(arrOfStr[0], SENSOR_COUNT);
+        if (id == SENSOR_COUNT) {
+            Log.d(TAG, "Cannot associate BLE with a Sensor");
+            return;
+        }
+        if (id == 0) {
+            Log.d(TAG, "This is a test MQTT Msg...return true");
+            return;
+        }
+        for (int i = 0; i < SENSOR_COUNT; i++) {
+            if (sensorStruct[i].id == id) {
+                Log.d(TAG, "Found sensor in sensorStruct");
+                DBHandler db = new DBHandler(getApplicationContext());
+                HashMap<String, String> sensorList =
+                        db.GetSensorBySensorId(id);
+                if (sensorList != null) {
+                    Log.d(TAG, "Found sensor in sensorDB: Status: " +
+                            sensorList.get("status") + id);
+                    int count = db.UpdateSensorDetails(arrOfStr[2], id);
+                    Log.d(TAG, "Print out the Sensor SQLite DB");
+                    ArrayList<HashMap<String, String>> sensorL = db.GetSensors();
+                    Log.d(TAG, sensorL.toString());
+                }
+            }
+        }
+    }
+
     boolean poilcyAllows(String msg) {
         String[] arrOfStr = msg.split(":", 4);
-        int id = parseWithDefault(arrOfStr[0], 10);
-        if (id == 10) {
+        int id = parseWithDefault(arrOfStr[0], SENSOR_COUNT);
+        if (id == SENSOR_COUNT) {
             Log.d(TAG, "Cannot associate BLE with a Sensor");
             return false;
         }
@@ -117,7 +155,7 @@ public class mqttService extends Service {
             Log.d(TAG, "This is a test MQTT Msg...return true");
             return true;
         }
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < SENSOR_COUNT; i++) {
             if (sensorStruct[i].id == id) {
                 Log.d(TAG, "Comparing: " + sensorStruct[i].notifyOn + ":" + arrOfStr[2]+":");
                 if ((sensorStruct[i].notifyOn).equals(arrOfStr[2].trim())) {
