@@ -32,9 +32,9 @@ import com.rvirin.onvif.onvifcamera.OnvifDevice;
 import com.rvirin.onvif.onvifcamera.OnvifListener;
 import com.rvirin.onvif.onvifcamera.OnvifRequest;
 import com.rvirin.onvif.onvifcamera.OnvifResponse;
-
 import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 
+// https://github.com/vardang/onvif
 public class AddCameraActivity extends AppCompatActivity implements OnvifListener{
     final String TAG = "ESP32IOT camera";
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
@@ -70,12 +70,20 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
 
                 mAdapter.add("Camera Added:", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
-
-                // Create ONVIF device with user inputs and retrieve camera informations
-                currentDevice = new OnvifDevice(ipaddS, userIdS, pwdS);
-                OnvifListener onvifListener = (OnvifListener)thisActivity;
-                currentDevice.setListener(onvifListener);
-                currentDevice.getServices();
+                if (currentDevice.isConnected()) {
+                    String uri = currentDevice.getRtspURI();
+                    if (uri == null) {
+                        Log.d(TAG, "Current Device connected, No RTSP URI");
+                        return;
+                    }
+                    Log.d(TAG, "Current Device connected, RTSP URI: " + uri);
+                } else {
+                    // Create ONVIF device with user inputs and retrieve camera informations
+                    currentDevice = new OnvifDevice(ipaddS, userIdS, pwdS);
+                    OnvifListener onvifListener = (OnvifListener) thisActivity;
+                    currentDevice.setListener(onvifListener);
+                    currentDevice.getServices();
+                }
             }
         });
         mRecyclerView = (RecyclerView) findViewById(R.id.camera_recycler_view);
@@ -127,7 +135,7 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
         // if GetProfiles have been completed, we request the Stream URI
         else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetProfiles) {
             int profilesCount = currentDevice.getMediaProfiles().size();
-            Log.d(TAG, "Get Profiles: " + onvifResponse.getParsingUIMessage());
+            Log.d(TAG, "Profiles: " + onvifResponse.getParsingUIMessage());
             toast = Toast.makeText(this, profilesCount + " profiles retrieved 😎",
                     Toast.LENGTH_SHORT);
             mAdapter.add(profilesCount + " Profiles: " +
