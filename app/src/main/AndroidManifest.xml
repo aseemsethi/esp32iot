@@ -78,6 +78,11 @@
             android:parentActivityName=".AddCameraActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".ScanActivity"
+            android:label="scanActivity"
+            android:parentActivityName=".ScanActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">

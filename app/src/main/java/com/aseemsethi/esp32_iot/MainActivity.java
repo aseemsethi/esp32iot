@@ -30,6 +30,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -64,6 +65,11 @@ import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 // implementation 'com.rvirin.onvif:onvifcamera:1.1.8' to gradle app
 // and import the Onvif statements.
 // Add in build.gradle - classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//
+// Goto https://github.com/evercam/evercam-android/tree/master/evercamPlay/src
+// Copy the libs/jar files (3 jar files) into our lib directory
+// Now we can use evercam lib for searching cameras
+//
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener  {
     final String TAG = "ESP32IOT MainActivity";
@@ -76,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_7 = 7; // for logs
     private final static int REQUEST_CODE_8 = 8; // for mrt
     private final static int REQUEST_CODE_9 = 9; // for addCamera
+    private final static int REQUEST_CODE_10 = 10; // for scanCamera
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -286,8 +293,7 @@ public class MainActivity extends AppCompatActivity
                 if (sensorT != null) {
                     Log.d(TAG, "OnCreate: Found sensor in sensorDB: Status: " +
                             sensorT.get("status"));
-                    sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":" + i
-                            + "\n\n" + sensorT.get("status"));
+                    sensorStruct[i].btn.setText("\n\n" + sensorT.get("status"));
                 }
                 String st = sensorT.get("status");
                 if (st.trim().equals("Open")) {
@@ -548,6 +554,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, AddCameraActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_9);
+        } else if (id == R.id.nav_scan_camera) {
+            Intent intent = new Intent(this, ScanActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_10);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -673,21 +683,38 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         }
-
+        Log.d(TAG, "addbutton: add sensor buttons");
         TableLayout tl = (TableLayout) findViewById(R.id.table1);
         TableRow tr = new TableRow(this);
+        tr.setGravity(Gravity.CENTER);
         // Set new table row layout parameters.
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
                 TableRow.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(5,5,5,5);
-        tr.setLayoutParams(layoutParams);
+
+        TextView tv = new TextView(this);
+        tv.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT,
+                0.5f));
+        tv.setText(sensorName + ":" + id +
+                   "\n" + "Current Status since: ");
+        tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
+        tv.setTextSize(10);
+        tr.addView(tv);
+
         final Button btn = new Button(this);
-        btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
-        btn.setText(sensorName + ":" + id);
+        //btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
+        //btn.setText(sensorName + ":" + id);
         //btn.setGravity(Gravity.CENTER_VERTICAL);
         btn.setId(id);
         btn.setBackgroundResource(R.drawable.sensor);
-        tr.addView(btn, 0);
+        tr.addView(btn);
+
+        ImageView view = new ImageView(this);
+        view.setBackgroundResource(R.drawable.square);
+
+        tr.setLayoutParams(layoutParams);
+        tr.addView(view);
+
         tl.addView(tr);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -874,8 +901,9 @@ public class MainActivity extends AppCompatActivity
                             ArrayList<HashMap<String, String>> sensorL = db.GetSensors();
                             Log.d(TAG, sensorL.toString());
                         }
-                        sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
-                                + id + "\n\n" + arrOfStr[2]);
+                        //sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
+                        //        + id + "\n\n" + arrOfStr[2]);
+                        sensorStruct[i].btn.setText("\n\n" + arrOfStr[2]);
                         if ((arrOfStr[2].trim()).equals("Open")) {
                             sensorStruct[i].status_code = OPEN_CODE;
                             sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);

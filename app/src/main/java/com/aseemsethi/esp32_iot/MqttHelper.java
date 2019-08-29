@@ -59,7 +59,7 @@ public class MqttHelper {
     private void connect(){
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
-        mqttConnectOptions.setCleanSession(false);
+        mqttConnectOptions.setCleanSession(true); // was false
         //mqttConnectOptions.setKeepAliveInterval(20);
         //mqttConnectOptions.setUserName(username);
         //mqttConnectOptions.setPassword(password.toCharArray());
@@ -74,7 +74,7 @@ public class MqttHelper {
                     disconnectedBufferOptions.setBufferEnabled(true);
                     disconnectedBufferOptions.setBufferSize(100);
                     disconnectedBufferOptions.setPersistBuffer(false);
-                    disconnectedBufferOptions.setDeleteOldestMessages(false);
+                    disconnectedBufferOptions.setDeleteOldestMessages(true);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
                     //Log.d(TAG, "Subscribing to: " + subscriptionTopic);
                     //subscribeToTopic();
@@ -115,7 +115,7 @@ public class MqttHelper {
 
     public void subscribeToTopic(final String subscriptionTopic) {
         try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 2, null, new IMqttActionListener() {
+            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     Log.w(TAG,"Subscribed to: " + subscriptionTopic);

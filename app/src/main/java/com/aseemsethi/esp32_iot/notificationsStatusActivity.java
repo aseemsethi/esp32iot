@@ -61,6 +61,7 @@ public class notificationsStatusActivity extends AppCompatActivity {
             public void onClick(View view) {
                 view.startAnimation(buttonClick);
                 mAdapter.clear();
+                Log.d(TAG, "Deleting esp32Notifications file");
                 deleteFile("esp32Notifications");
                 /*
                 FileOutputStream fos;
