@@ -12,6 +12,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.UUID;
+
 /**
  * Created by wildan on 3/19/2017.
  */
@@ -23,7 +25,7 @@ public class MqttHelper {
     //final String serverUri = "tcp://broker.hivemq.com:1883";
     final String serverUri = "tcp://mqtt.eclipse.org:1883";
 
-    final String clientId = "ESP32";
+    final String clientId = UUID.randomUUID().toString(); // "ESP32Dev";
     final String subscriptionTopic = "esp32sensor/+";
 
     public MqttHelper(Context context){
@@ -114,6 +116,7 @@ public class MqttHelper {
     }
 
     public void subscribeToTopic(final String subscriptionTopic) {
+        Log.d(TAG, "subscribeToTopic: " + subscriptionTopic);
         try {
             mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
                 @Override

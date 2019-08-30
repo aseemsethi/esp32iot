@@ -25,7 +25,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import static android.content.ContentValues.TAG;
@@ -63,8 +65,11 @@ public class mqttService extends Service {
         public int    id;
         Button btn;
         int status_code;  // OPEN or CLOSE CODE
+        Time lastTimeChanged;
     };
     sensorT sensorStruct[];
+    String lastMqttTopic="";
+    boolean firstTime = true;
 
     @Nullable
     @Override
@@ -79,6 +84,12 @@ public class mqttService extends Service {
             @Override
             public void connectComplete(boolean b, String s) {
                 Log.w(TAG, "mqttService - Connected");
+                //if (firstTime == true) {
+                if (lastMqttTopic != null) {
+                    Log.d(TAG, "Subscribing to last MQTT Topic:: " + lastMqttTopic);
+                    mqttHelper.subscribeToTopic(lastMqttTopic);
+                    firstTime = false;
+                }
             }
             @Override
             public void connectionLost(Throwable throwable) {
@@ -133,10 +144,22 @@ public class mqttService extends Service {
                 HashMap<String, String> sensorList =
                         db.GetSensorBySensorId(id);
                 if (sensorList != null) {
-                    Log.d(TAG, "Found sensor in sensorDB: Status: " +
+                    Log.d(TAG, "Found sensor in sensorDB: Old Status: " +
                             sensorList.get("status") + id);
+                    if ((arrOfStr[2].trim()).equals(sensorList.get("status").trim())) {
+                        Log.d(TAG, "No Sensor state change: " + sensorList.get("status") +
+                                "-> " + (arrOfStr[2].trim()));
+                    } else {
+                        sensorStruct[i].lastTimeChanged =
+                                new Time(Calendar.getInstance().getTimeInMillis());
+                        Log.d(TAG, "Sensor state change: " + sensorList.get("status") +
+                                "-> " + (arrOfStr[2].trim()) + " at: " +
+                                sensorStruct[i].lastTimeChanged);
+                        int count = db.UpdateSensorTime(sensorStruct[i].lastTimeChanged.toString(),
+                                id);
+                    }
                     int count = db.UpdateSensorDetails(arrOfStr[2], id);
-                    Log.d(TAG, "Print out the Sensor SQLite DB");
+                    Log.d(TAG, "Updated Sensor SQLite DB");
                     ArrayList<HashMap<String, String>> sensorL = db.GetSensors();
                     Log.d(TAG, sensorL.toString());
                 }
@@ -211,8 +234,9 @@ public class mqttService extends Service {
             case MQTTUPDATE_SENSOR_ACTION:
                 id = intent.getIntExtra("id", 0);
                 String notifyOn = intent.getStringExtra("notifyOn");
+                lastMqttTopic = intent.getStringExtra("lastMqttTopic");
                 Log.d(TAG, "Recvd Sensor info from Main MQTTUPDATE_SENSOR_ACTION: " +
-                        id + ":" + notifyOn);
+                        id + ":" + notifyOn +  ":" + lastMqttTopic);
                 sensorStruct[id].id = id;
                 sensorStruct[id].notifyOn = notifyOn;
                 break;

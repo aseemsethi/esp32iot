@@ -118,6 +118,7 @@ public class MRTActivity extends AppCompatActivity {
         healthB.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                v.startAnimation(buttonClick);
                 if(deviceAddress.isEmpty()) {
                     //mAdapter.add("Select an IOT Node first", Color.BLUE);
                     //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
@@ -172,6 +173,9 @@ public class MRTActivity extends AppCompatActivity {
                 if (deviceAddress.isEmpty()) return;
                 Log.d(TAG, "Clearing Device config File and deleting all Sensors !!!");
                 deleteFile("esp32SensorNode");
+                deleteFile("esp32Notifications");
+                deleteFile("esp32mqttTopic");
+                deleteFile("esp32Cameras");
                 String uri = "http://" + deviceAddress + ":8080/clear";
                 startSendHttpRequestThread(uri);
             }
@@ -333,12 +337,12 @@ public class MRTActivity extends AppCompatActivity {
                     process.getInputStream()));
             StringBuffer output = new StringBuffer();
             String temp;
-            while ( (temp = reader.readLine()) != null) {
+            while ((temp = reader.readLine()) != null) {
                 output.append(temp);
                 count++;
             }
             reader.close();
-            if(count > 0)
+            if (count > 0)
                 str = output.toString();
 
             process.destroy();
@@ -348,6 +352,10 @@ public class MRTActivity extends AppCompatActivity {
 
         Log.d(TAG, "PING Count: " + count);
         Log.d(TAG, "PING String" + str);
+        if (str == null) {
+            mAdapter.add("Failed: " + str, Color.BLUE);
+            return true;
+        }
         if (str.contains("64 bytes from"))
             mAdapter.add("Success: " + str, Color.BLUE);
         else

@@ -103,6 +103,14 @@ public class ScanActivity extends AppCompatActivity {
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
             }
         });
+        final Button clrB = findViewById(R.id.clr_b);
+        clrB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.startAnimation(buttonClick);
+                mAdapter.clear();
+            }
+        });
         final Button showB = findViewById(R.id.show_b);
         showB.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -153,6 +161,16 @@ public class ScanActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new HistoryAdapter(new ArrayList<String>());
         mRecyclerView.setAdapter(mAdapter);
+    }
+    // This method will be invoked when user click android device Back menu at bottom.
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "Back button pressed from Add Camera Activity");
+        Intent intent = new Intent();
+        Log.d(TAG, "Send Camera info: ");
+        intent.putExtra("onvifDevices", onvifDeviceList);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     private OnvifRunnable onvifRunnable = new OnvifRunnable() {

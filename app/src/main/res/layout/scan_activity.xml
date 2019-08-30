@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".notificationsActivity">
 
-     <View
+    <View
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:layout_marginTop="5dp"
@@ -25,16 +25,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/my_border"
-            android:textStyle="bold"
-            android:text="Self IP Address:" />
+            android:text="Self IP Address:"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/scan_self_ipaddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -49,16 +49,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/my_border"
-            android:textStyle="bold"
-            android:text="Device IP Address:" />
+            android:text="Device IP Address:"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/scan_dev_ipaddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <View
@@ -97,11 +97,38 @@
                 android:layout_marginRight="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_corner"
-                android:text="Details" />
+                android:text="Cameras" />
+
+            <Button
+                android:id="@+id/clr_b"
+                android:layout_width="0dip"
+                android:layout_column="1"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner"
+                android:text="Clr" />
         </TableRow>
+        <!-- Blah Blah Blah
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/CameraImg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginTop="10dp"
+                        android:src="@mipmap/face" />
+                </TableRow>
+        -->
+
         <View android:layout_height="10dp" />
-        <View android:layout_height="2dp"
+
+        <View
+            android:layout_height="2dp"
             android:background="@color/colorPrimary" />
+
         <View android:layout_height="10dp" />
 
     </TableLayout>
@@ -127,8 +154,7 @@
         android:fillViewport="true"
         android:scrollbars="vertical"
         android:verticalScrollbarPosition="right"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-    </android.support.v7.widget.RecyclerView>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"></android.support.v7.widget.RecyclerView>
 
 </LinearLayout>
 

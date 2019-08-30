@@ -49,8 +49,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import io.evercam.network.discovery.DiscoveredCamera;
 
 import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 
@@ -90,6 +93,7 @@ public class MainActivity extends AppCompatActivity
     private HistoryAdapter mAdapter;
     RecyclerView mRecyclerView;
     String deviceAddress = "";
+    String lastMqttTopic ="";
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
     MqttHelper mqttHelper;
     String mqtt_token = "";
@@ -100,6 +104,7 @@ public class MainActivity extends AppCompatActivity
     private final static int CLOSE_CODE=1;
     private final static int UNKNOWN_CODE=2;
     private final static int SENSOR_COUNT=10;
+    private final static int CAMERA_COUNT=10;
 
     private class sensorT {
         public String sensorName;
@@ -107,13 +112,23 @@ public class MainActivity extends AppCompatActivity
         public String notifyOn;
         public int    id;
         Button        btn;
+        TableRow      tr;
+        TextView      tv;
         int status_code;  // OPEN or CLOSE CODE
+        Time lastTimeChanged;
     };
     sensorT sensorStruct[];
+
+    private class cameraT {
+        public String ipaddress;
+    };
+    cameraT cameraStruct[];
+
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     private long lastTouchTime = 0;
     private long currentTouchTime = 0;
-
+    private ArrayList<DiscoveredCamera> onvifDeviceList =
+            new ArrayList<DiscoveredCamera>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,7 +140,10 @@ public class MainActivity extends AppCompatActivity
             sensorStruct[i] = new sensorT();
             sensorStruct[i].status_code = UNKNOWN_CODE;
         }
-
+        cameraStruct = new cameraT[CAMERA_COUNT];
+        for (int i = 0; i < CAMERA_COUNT; i++) {
+            cameraStruct[i] = new cameraT();
+        }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -154,6 +172,7 @@ public class MainActivity extends AppCompatActivity
                     //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
+                wifiB.setText("WIFI");
                 v.startAnimation(buttonClick);
                 //mAdapter.add("Requesting WiFi Status..", Color.BLUE);
                 //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
@@ -170,6 +189,7 @@ public class MainActivity extends AppCompatActivity
                     //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     return;
                 }
+                tempb.setText("TEMP");
                 v.startAnimation(buttonClick);
                 //mAdapter.add("Requesting Temperature Status..", Color.BLUE);
                 //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
@@ -213,6 +233,19 @@ public class MainActivity extends AppCompatActivity
         }
 
         DBHandler dbHandler = new DBHandler(MainActivity.this);
+        Context context = getApplicationContext();
+
+        // Let MQTTService know to register for the last known MQTT Topic
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32mqttTopic")));
+            String inputString;
+            while ((inputString = inputReader.readLine()) != null) {
+                lastMqttTopic = inputString;
+                Log.d(TAG, "Read MQTT Topic from file: " + lastMqttTopic);
+                break;
+            }
+        } catch (IOException e) { e.printStackTrace();}
 
         // Read Sensors from file
         try {
@@ -222,16 +255,17 @@ public class MainActivity extends AppCompatActivity
             while ((inputString = inputReader.readLine()) != null) {
                 String str = inputString;
                 String[] arrOfStr = str.split(":", 4);
+                // Room:fddc1a:3:Close
                 Log.d(TAG, "Read Sensor Node from file: " + str);
                 if (arrOfStr[0] != null) {
                     addButton(arrOfStr[0], arrOfStr[1], Integer.parseInt(arrOfStr[2]),
                             arrOfStr[3]);
                     dbHandler.insertSensorDetails(Integer.parseInt(arrOfStr[2]),
-                            arrOfStr[0], "Close");
+                            arrOfStr[0], "Close", "");
                     // Update the MQTT service for its policies on notification
-                    Context context = getApplicationContext();
                     Intent serviceIntent = new Intent(context, mqttService.class);
                     serviceIntent.setAction(mqttService.MQTTUPDATE_SENSOR_ACTION);
+                    serviceIntent.putExtra("lastMqttTopic", lastMqttTopic);
                     serviceIntent.putExtra("id", Integer.parseInt(arrOfStr[2]));
                     serviceIntent.putExtra("notifyOn", arrOfStr[3]);
                     startService(serviceIntent);
@@ -239,49 +273,13 @@ public class MainActivity extends AppCompatActivity
             }
             inputReader.close();
             updateSensorStatus();
-
         } catch (IOException e) { e.printStackTrace();}
-
         initControls();
     }
 
     void updateSensorStatus() {
-        /*
-        String inputString;
-        String lastLine = "";
-
-        try {
-            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
-                    openFileInput("esp32Notifications")));
-            while ((inputString = inputReader.readLine()) != null) {
-                lastLine = inputString;
-            }
-        } catch (IOException e) { e.printStackTrace();}
-
-        String[] arrOfStr = lastLine.split(":", 4);
-        Log.d(TAG, "File msgs, lastLine: " + lastLine);
-        int id = parseWithDefault(arrOfStr[0], 0);
-        if (id == 0) {
-            Log.d(TAG, "Cannot associate BLE with Button");
-            return;
-        }
-        // MQTT Recvd: 3:Round:Closed : Fri Aug  9 22:09:32 2019:192.168.1.35:
-        Log.d(TAG, "lastLine id:" + id);
-        for (int i = 0; i < 9; i++) {
-            if (sensorStruct[i].id == id) {
-                Log.d(TAG, "Found the button");
-                sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":" + id
-                        + "\n\n" + arrOfStr[2]);
-                if ((arrOfStr[2].trim()).equals("Open"))
-                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
-                else
-                    sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor);
-                break;
-            }
-        }
-        */
         DBHandler db = new DBHandler(this);
-        Log.d(TAG, "Print out the Sensor SQLite DB");
+        Log.d(TAG, "Update: Print out the Sensor SQLite DB");
         ArrayList<HashMap<String, String>> sensorList = db.GetSensors();
         Log.d(TAG, sensorList.toString());
 
@@ -294,6 +292,9 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "OnCreate: Found sensor in sensorDB: Status: " +
                             sensorT.get("status"));
                     sensorStruct[i].btn.setText("\n\n" + sensorT.get("status"));
+                    sensorStruct[i].tv.setText(sensorStruct[i].sensorName + ":" +
+                            i + "\n" + "Current Status since: " +
+                            sensorT.get("time"));
                 }
                 String st = sensorT.get("status");
                 if (st.trim().equals("Open")) {
@@ -593,7 +594,6 @@ public class MainActivity extends AppCompatActivity
                         deviceAddress = address;
                     }
                     if (!deviceAddress.isEmpty()) {
-                        // Store Sensor in File
                         FileOutputStream fos;
                         try {
                             fos = openFileOutput("esp32configNode", Context.MODE_PRIVATE);
@@ -621,12 +621,21 @@ public class MainActivity extends AppCompatActivity
                     }
                     // 2:Round:Open : Sat Aug 10 12:14:20 2019:192.168.1.35:
                     Log.d(TAG, "Recvd mqtt token in main : " + mqtt_token);
-                    //mqttHelper.subscribeToTopic(mqtt_token);
                     Context context = getApplicationContext();
                     Intent serviceIntent = new Intent(context, mqttService.class);
                     serviceIntent.setAction(mqttService.MQTTSUBSCRIBE_ACTION);
                     serviceIntent.putExtra("topic", mqtt_token);
                     startService(serviceIntent);
+                        FileOutputStream fos;
+                        try {
+                            fos = openFileOutput("esp32mqttTopic", Context.MODE_PRIVATE);
+                            //default mode is PRIVATE, can be APPEND etc.
+                            fos.write(mqtt_token.getBytes());
+                            fos.write("\n".getBytes());
+                            Log.d(TAG, "Saving MQTT Topic to file" + ":" + mqtt_token);
+                            fos.close();
+                        } catch (FileNotFoundException e) {e.printStackTrace();}
+                        catch (IOException e) {e.printStackTrace();}
                 }
                 break;
             case REQUEST_CODE_4:
@@ -671,7 +680,70 @@ public class MainActivity extends AppCompatActivity
                     catch (IOException e) {e.printStackTrace();}
                 }
                 break;
+            case REQUEST_CODE_10:
+                Log.d(TAG, "Cameras returned to main: ");
+                if(resultCode == RESULT_OK) {
+                    onvifDeviceList = (ArrayList<DiscoveredCamera>)dataIntent.
+                            getSerializableExtra("onvifDevices");
+                    if (onvifDeviceList.size() == 0) {
+                        Log.d(TAG, "Main: No cameras detected"); return;
+                    }
+                    for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
+                        Log.d(TAG, discoveredCamera.toString() + ":" +
+                                discoveredCamera.getIP());
+                        addCamera(discoveredCamera);
+                    }
+                    Log.d(TAG, "Save Cameras in file..");
+                    FileOutputStream fos;
+                    try {
+                        fos = openFileOutput("esp32Cameras", Context.MODE_APPEND);
+                        for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
+                            String str = discoveredCamera.getVendor() + ":" +
+                                discoveredCamera.getIP();
+                            fos.write(str.getBytes());
+                            fos.write("\n".getBytes());
+                            Log.d(TAG, "Saving Camera to file" + ":" + str);
+                        }
+                        fos.close();
+                    } catch (FileNotFoundException e) {e.printStackTrace();}
+                    catch (IOException e) {e.printStackTrace();}
+                }
+                break;
         }
+    }
+
+    boolean addCamera(DiscoveredCamera discoveredCamera) {
+        for (int i = 0; i < 9; i++) {
+            if (cameraStruct[i].ipaddress == null) continue;
+            if ((cameraStruct[i].ipaddress).contains(discoveredCamera.getIP())) {
+                Log.d(TAG, "Camera already added    !!!!");
+                return false;
+            }
+        }
+        Log.d(TAG, "addCamera: add camera buttons");
+        TableLayout tl = (TableLayout) findViewById(R.id.table1);
+        TableRow tr = new TableRow(this);
+        tr.setGravity(Gravity.CENTER);
+        // Set new table row layout parameters.
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(5,2,5,2);
+
+        TextView tv = new TextView(this);
+        tv.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT,
+                0.7f));
+        tv.setText(discoveredCamera.getVendor());
+        tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
+        tv.setTextSize(10);
+        tr.addView(tv);
+
+        ImageView view = new ImageView(this);
+        view.setBackgroundResource(R.drawable.square);
+        tr.setLayoutParams(layoutParams);
+        tr.addView(view);
+        tl.addView(tr);
+        return true;
     }
 
     boolean addButton(String sensorName, String sensorTag, final int id, String notifyOn) {
@@ -689,12 +761,14 @@ public class MainActivity extends AppCompatActivity
         tr.setGravity(Gravity.CENTER);
         // Set new table row layout parameters.
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(5,5,5,5);
+                TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(-5,-5,-5,-5);
+        //tr.setLayoutParams(layoutParams);
 
-        TextView tv = new TextView(this);
-        tv.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT,
-                0.5f));
+        final TextView tv = new TextView(this);
+        tv.setLayoutParams(new TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT,0.7f));
         tv.setText(sensorName + ":" + id +
                    "\n" + "Current Status since: ");
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
@@ -702,20 +776,13 @@ public class MainActivity extends AppCompatActivity
         tr.addView(tv);
 
         final Button btn = new Button(this);
-        //btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
-        //btn.setText(sensorName + ":" + id);
-        //btn.setGravity(Gravity.CENTER_VERTICAL);
         btn.setId(id);
         btn.setBackgroundResource(R.drawable.sensor);
         tr.addView(btn);
 
-        ImageView view = new ImageView(this);
-        view.setBackgroundResource(R.drawable.square);
+        tl.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
+                TableLayout.LayoutParams.WRAP_CONTENT));
 
-        tr.setLayoutParams(layoutParams);
-        tr.addView(view);
-
-        tl.addView(tr);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -787,12 +854,15 @@ public class MainActivity extends AppCompatActivity
                 serviceIntent.setAction(mqttService.MQTTDELETE_SENSOR_ACTION);
                 serviceIntent.putExtra("id", id);
                 startService(serviceIntent);
-                v.setVisibility(View.GONE);
+                //(sensorStruct[id].tr).setVisibility(View.GONE);
+                //v.setVisibility(View.GONE);
             }
         });
         // Save this into a structure, that needs to also go into a file.
         sensorStruct[id].id = id;
         sensorStruct[id].btn = btn;
+        sensorStruct[id].tr = tr;
+        sensorStruct[id].tv = tv;
         sensorStruct[id].sensorName = sensorName;
         sensorStruct[id].sensorTag = sensorTag;
         sensorStruct[id].notifyOn = notifyOn;
@@ -853,6 +923,7 @@ public class MainActivity extends AppCompatActivity
         registerServices();
     }
 
+
     void registerServices() {
         Log.d(TAG, "Register receivers");
 
@@ -894,16 +965,19 @@ public class MainActivity extends AppCompatActivity
                         HashMap<String, String> sensorList =
                                 db.GetSensorBySensorId(id);
                         if (sensorList != null) {
-                            Log.d(TAG, "Found sensor in sensorDB: Status: " +
-                                    sensorList.get("status"));
+                            Log.d(TAG, "Found sensor " + i +
+                                    " in sensorDB: Old Status: " +
+                                    sensorList.get("status") + "LastTimeChanged: " +
+                                    sensorList.get("time"));
                             int count = db.UpdateSensorDetails(arrOfStr[2], id);
                             Log.d(TAG, "Print out the Sensor SQLite DB");
                             ArrayList<HashMap<String, String>> sensorL = db.GetSensors();
                             Log.d(TAG, sensorL.toString());
                         }
-                        //sensorStruct[i].btn.setText(sensorStruct[i].sensorName + ":"
-                        //        + id + "\n\n" + arrOfStr[2]);
-                        sensorStruct[i].btn.setText("\n\n" + arrOfStr[2]);
+                        sensorStruct[i].btn.setText("\n\n\n" + arrOfStr[2]);
+                        sensorStruct[i].tv.setText(sensorStruct[i].sensorName + ":" +
+                                id + "\n" + "Current Status since: " +
+                                sensorList.get("time"));
                         if ((arrOfStr[2].trim()).equals("Open")) {
                             sensorStruct[i].status_code = OPEN_CODE;
                             sensorStruct[i].btn.setBackgroundResource(R.drawable.sensor_open);
@@ -924,7 +998,8 @@ public class MainActivity extends AppCompatActivity
             return Integer.parseInt(s);
         }
         catch (NumberFormatException e) {
-            // It's OK to ignore "e" here because returning a default value is the documented behaviour on invalid input.
+            // It's OK to ignore "e" here because returning a default value is the
+            // documented behaviour on invalid input.
             return def;
         }
     }
