@@ -33,10 +33,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.rvirin.onvif:onvifcamera:1.1.8'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
-    implementation files('libs\\evercam-discovery-lib-20151211.jar')
-    implementation files('libs\\evercam-java-1.1.8-android.jar')
-    implementation files('libs\\upnplib-mobile.jar')
+    implementation fileTree(include: ['*.aar', '*.jar'], exclude: [], dir: 'libs')
+    implementation files('libs/evercam-discovery-lib-20151211.jar')
+    implementation files('libs/evercam-java-1.1.8-android.jar')
+    implementation files('libs/upnplib-mobile.jar')
     implementation('org.simpleframework:simple-xml:2.7.1') {
         exclude module: 'stax'
         exclude module: 'stax-api'

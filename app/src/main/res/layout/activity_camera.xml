@@ -80,7 +80,7 @@
             android:textSize="16sp"
             android:inputType="textPersonName"
             android:layout_marginLeft="20dp"
-            android:text="192.168.1.101:5000"/>
+            android:text="192.168.1.3:5000"/>
     </LinearLayout>
 
     <LinearLayout
@@ -106,7 +106,7 @@
             android:textSize="16sp"
             android:inputType="textPersonName"
             android:layout_marginLeft="20dp"
-            android:text="aseemsethi"/>
+            android:text="aseemsethi@yahoo.com"/>
     </LinearLayout>
 
     <LinearLayout

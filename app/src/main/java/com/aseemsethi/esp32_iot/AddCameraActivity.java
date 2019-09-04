@@ -71,6 +71,12 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
 
                 mAdapter.add("Camera Added:", Color.BLUE);
                 mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                // Create ONVIF device with user inputs and retrieve camera informations
+                Log.d(TAG, "Logging to camera with: " + userIdS + " : " + pwdS);
+                currentDevice = new OnvifDevice(ipaddS, userIdS, pwdS);
+                OnvifListener onvifListener = (OnvifListener) thisActivity;
+                currentDevice.setListener(onvifListener);
+                currentDevice.getServices();
                 if (currentDevice.isConnected()) {
                     String uri = currentDevice.getRtspURI();
                     if (uri == null) {
@@ -78,12 +84,6 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
                         return;
                     }
                     Log.d(TAG, "Current Device connected, RTSP URI: " + uri);
-                } else {
-                    // Create ONVIF device with user inputs and retrieve camera informations
-                    currentDevice = new OnvifDevice(ipaddS, userIdS, pwdS);
-                    OnvifListener onvifListener = (OnvifListener) thisActivity;
-                    currentDevice.setListener(onvifListener);
-                    currentDevice.getServices();
                 }
             }
         });
@@ -97,14 +97,13 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
     @Override
     public void requestPerformed(OnvifResponse onvifResponse) {
         Log.d(TAG, onvifResponse.getParsingUIMessage());
-
         cancelToast();
 
         if (!onvifResponse.getSuccess()) {
             Log.e(TAG, "request failed: " + onvifResponse.getRequest().getType() +
                     "\n Response: " + onvifResponse.getError());
             toast = Toast.makeText(this,
-                    "⛔️ Request failed: ${response.request.type}",
+                    "⛔ " + onvifResponse.getRequest().getType() + " : " + "Failed",
                     Toast.LENGTH_SHORT);
             if (toast != null) {
                 toast.show();
@@ -113,9 +112,19 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
                     + "\n" + onvifResponse.getError(),
                     Color.BLUE);
             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            return;
+        } else {
+            Log.d(TAG,"Request " + onvifResponse.getRequest().getType() +
+                    " performed.");
+            Log.d(TAG,"Succeeded: " + onvifResponse.getSuccess() +
+                    "\nmessage:" + onvifResponse.getParsingUIMessage());
+            mAdapter.add("Request: " + " : " + onvifResponse.getRequest().getType()
+                            + " : " + onvifResponse.getSuccess(),
+                    Color.BLUE);
+            mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
         }
         // if GetServices have been completed, we request the device information
-        else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetServices) {
+        if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetServices) {
             currentDevice.getDeviceInformation();
             Log.d(TAG, "Get Services: ");
             mAdapter.add("GetServices: " + onvifResponse.getParsingUIMessage(), Color.BLUE);
@@ -149,7 +158,7 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
         else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetStreamURI) {
             //Button button = findViewById(R.id.button);
             //button.setText(getString(R.string.Play));
-            Log.d(TAG, "Get StreamURI ");
+            Log.d("ONVIF", "Stream URI retrieved: " + currentDevice.getRtspURI());
             toast = Toast.makeText(this,"Stream URI retrieved", Toast.LENGTH_SHORT);
             showToast();
             mAdapter.add("Profiles:" + onvifResponse.getParsingUIMessage(), Color.BLUE);
