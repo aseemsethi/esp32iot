@@ -73,6 +73,18 @@ import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 // Copy the libs/jar files (3 jar files) into our lib directory
 // Now we can use evercam lib for searching cameras
 //
+// For ONVIF, goto https://github.com/rvi/ONVIFCameraAndroid
+// Download the onvifcamera directory from this package into a local directory
+// File --> New --> Import Module the above onvifcamera directory
+// In gradle file add a line - implementation project(':onvifcamera')
+// In settings.gradle - modify to : include ':app', ':onvifcamera'
+//
+// Web Services Dynamic Discovery (WS-Discovery) is a technical specification that
+// defines a multicast discovery protocol to locate services on a local network.
+// It operates over TCP and UDP port 3702 and uses IP multicast address
+// 239.255.255.250. Communication between nodes is done using SOAP-over-UDP.
+// UDP ports 139, 445, 1124, 3702 TCP ports 139, 445, 3702, 49179, 5357,5358
+//
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener  {
     final String TAG = "ESP32IOT MainActivity";
@@ -120,9 +132,13 @@ public class MainActivity extends AppCompatActivity
     sensorT sensorStruct[];
 
     private class cameraT {
-        public String ipaddress;
+        String      ipaddress;
+        TextView    tv;
+        ImageView   iv;
+        int         id;
     };
     cameraT cameraStruct[];
+    int cameraID = 1;
 
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     private long lastTouchTime = 0;
@@ -274,6 +290,25 @@ public class MainActivity extends AppCompatActivity
             inputReader.close();
             updateSensorStatus();
         } catch (IOException e) { e.printStackTrace();}
+
+        // Read Cameras from the file
+        //deleteFile("esp32Cameras");
+        try {
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(
+                    openFileInput("esp32Cameras")));
+            String inputString;
+            while ((inputString = inputReader.readLine()) != null) {
+                String str = inputString;
+                String[] arrOfStr = str.split(":", 2);
+                // CameraIP:CameraID
+                Log.d(TAG, "Read Camera Node from file: " + str);
+                if (arrOfStr[0] != null) {
+                    addCamera(arrOfStr[0]);
+                }
+            }
+            inputReader.close();
+        } catch (IOException e) { e.printStackTrace();}
+
         initControls();
     }
 
@@ -681,6 +716,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             case REQUEST_CODE_10:
+                int id = 0;
                 Log.d(TAG, "Cameras returned to main: ");
                 if(resultCode == RESULT_OK) {
                     onvifDeviceList = (ArrayList<DiscoveredCamera>)dataIntent.
@@ -691,15 +727,16 @@ public class MainActivity extends AppCompatActivity
                     for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
                         Log.d(TAG, discoveredCamera.toString() + ":" +
                                 discoveredCamera.getIP());
-                        addCamera(discoveredCamera);
+                        id = addCamera(discoveredCamera.getIP());
+                        if (id == 0) return;
                     }
                     Log.d(TAG, "Save Cameras in file..");
+                    ///data/user/0/com.aseemsethi.esp32_iot/files/esp32Cameras
                     FileOutputStream fos;
                     try {
                         fos = openFileOutput("esp32Cameras", Context.MODE_APPEND);
                         for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
-                            String str = discoveredCamera.getVendor() + ":" +
-                                discoveredCamera.getIP();
+                            String str = discoveredCamera.getIP() + ":" + id;
                             fos.write(str.getBytes());
                             fos.write("\n".getBytes());
                             Log.d(TAG, "Saving Camera to file" + ":" + str);
@@ -712,12 +749,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    boolean addCamera(DiscoveredCamera discoveredCamera) {
+    int addCamera(String ipaddress) {
         for (int i = 0; i < 9; i++) {
             if (cameraStruct[i].ipaddress == null) continue;
-            if ((cameraStruct[i].ipaddress).contains(discoveredCamera.getIP())) {
+            if ((cameraStruct[i].ipaddress).contains(ipaddress)) {
                 Log.d(TAG, "Camera already added    !!!!");
-                return false;
+                return 0;
             }
         }
         Log.d(TAG, "addCamera: add camera buttons");
@@ -729,21 +766,37 @@ public class MainActivity extends AppCompatActivity
                 TableRow.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(5,2,5,2);
 
-        TextView tv = new TextView(this);
+        final TextView tv = new TextView(this);
         tv.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT,
                 0.7f));
-        tv.setText(discoveredCamera.getVendor());
+        tv.setText(ipaddress);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
         tv.setTextSize(10);
         tr.addView(tv);
 
-        ImageView view = new ImageView(this);
-        view.setBackgroundResource(R.drawable.square);
+        final ImageView iv = new ImageView(this);
+        iv.setBackgroundResource(R.drawable.square);
+        iv.setId(cameraID);
         tr.setLayoutParams(layoutParams);
-        tr.addView(view);
+        tr.addView(iv);
         tl.addView(tr);
-        return true;
+        cameraStruct[cameraID].ipaddress = ipaddress;
+        cameraStruct[cameraID].tv = tv;
+        cameraStruct[cameraID].iv = iv;
+        cameraStruct[cameraID].id = cameraID;
+        Log.d(TAG, "addCamera: added: " + cameraID + " : " + ipaddress);
+
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.startAnimation(buttonClick);
+                Log.d(TAG, "Camera clicked: " + iv.getId() + " : " +
+                        cameraStruct[v.getId()].ipaddress);
+            }
+        });
+        cameraID += 1;
+        return cameraID-1;
     }
 
     boolean addButton(String sensorName, String sensorTag, final int id, String notifyOn) {

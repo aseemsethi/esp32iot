@@ -30,8 +30,8 @@ dependencies {
     compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.2-SNAPSHOT'
     compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation project(':esptouch')
+    implementation project(':onvifcamera')
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
-    implementation 'com.rvirin.onvif:onvifcamera:1.1.8'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation fileTree(include: ['*.aar', '*.jar'], exclude: [], dir: 'libs')
     implementation files('libs/evercam-discovery-lib-20151211.jar')

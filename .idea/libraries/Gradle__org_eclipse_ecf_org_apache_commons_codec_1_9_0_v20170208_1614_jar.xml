@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.eclipse.ecf:org.apache.commons.codec:1.9.0.v20170208-1614@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.ecf/org.apache.commons.codec/1.9.0.v20170208-1614/4756b0fe3bcee80b5c8328c5831d20544952b5c7/org.apache.commons.codec-1.9.0.v20170208-1614.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.ecf/org.apache.commons.codec/1.9.0.v20170208-1614/2377b9adae75fdcc8209771c1e350fb52cb47ef4/org.apache.commons.codec-1.9.0.v20170208-1614-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

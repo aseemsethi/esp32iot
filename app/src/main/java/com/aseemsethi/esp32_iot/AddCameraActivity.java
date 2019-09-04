@@ -32,7 +32,6 @@ import com.rvirin.onvif.onvifcamera.OnvifDevice;
 import com.rvirin.onvif.onvifcamera.OnvifListener;
 import com.rvirin.onvif.onvifcamera.OnvifRequest;
 import com.rvirin.onvif.onvifcamera.OnvifResponse;
-
 import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 
 // https://github.com/vardang/onvif
