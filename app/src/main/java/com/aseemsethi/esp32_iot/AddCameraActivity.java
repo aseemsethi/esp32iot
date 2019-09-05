@@ -157,7 +157,7 @@ public class AddCameraActivity extends AppCompatActivity implements OnvifListene
         else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetStreamURI) {
             //Button button = findViewById(R.id.button);
             //button.setText(getString(R.string.Play));
-            Log.d("ONVIF", "Stream URI retrieved: " + currentDevice.getRtspURI());
+            Log.d(TAG, "Stream URI retrieved: " + currentDevice.getRtspURI());
             toast = Toast.makeText(this,"Stream URI retrieved", Toast.LENGTH_SHORT);
             showToast();
             mAdapter.add("Profiles:" + onvifResponse.getParsingUIMessage(), Color.BLUE);

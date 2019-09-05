@@ -32,6 +32,7 @@ dependencies {
     implementation project(':esptouch')
     implementation project(':onvifcamera')
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.github.pedroSG94.vlc-example-streamplayer:pedrovlc:2.5.14v3'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation fileTree(include: ['*.aar', '*.jar'], exclude: [], dir: 'libs')
     implementation files('libs/evercam-discovery-lib-20151211.jar')
@@ -42,4 +43,5 @@ dependencies {
         exclude module: 'stax-api'
         exclude module: 'xpp3'
     }
+
 }

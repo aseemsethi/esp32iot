@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.pedroSG94.vlc-example-streamplayer:libvlc:2.5.14v3@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/21692f0715f9549fcd1fac1258962654/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/21692f0715f9549fcd1fac1258962654/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.pedroSG94.vlc-example-streamplayer/libvlc/2.5.14v3/a9f147ab2b0a12b228bb0ac36ac68600084730ea/libvlc-2.5.14v3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

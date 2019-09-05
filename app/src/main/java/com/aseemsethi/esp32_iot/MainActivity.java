@@ -1,6 +1,7 @@
 package com.aseemsethi.esp32_iot;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,9 +9,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
@@ -18,6 +21,8 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -28,6 +33,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -36,6 +42,11 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.rvirin.onvif.onvifcamera.OnvifDevice;
+import com.rvirin.onvif.onvifcamera.OnvifListener;
+import com.rvirin.onvif.onvifcamera.OnvifRequest;
+import com.rvirin.onvif.onvifcamera.OnvifResponse;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -56,6 +67,9 @@ import java.util.HashMap;
 import io.evercam.network.discovery.DiscoveredCamera;
 
 import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
+
+import com.pedro.vlc.VlcListener;
+import com.pedro.vlc.VlcVideoLibrary;
 
 // How to import esptouch module.
 // File --> New --> Import Module - point this to the esptouch directory locally downloaded
@@ -86,7 +100,8 @@ import static com.rvirin.onvif.onvifcamera.OnvifDeviceKt.currentDevice;
 // UDP ports 139, 445, 1124, 3702 TCP ports 139, 445, 3702, 49179, 5357,5358
 //
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener  {
+        implements NavigationView.OnNavigationItemSelectedListener, OnvifListener, VlcListener {
+
     final String TAG = "ESP32IOT MainActivity";
     private final static int REQUEST_CODE_1 = 1; // for mDNS
     private final static int REQUEST_CODE_2 = 2; // for push notifications
@@ -133,12 +148,19 @@ public class MainActivity extends AppCompatActivity
 
     private class cameraT {
         String      ipaddress;
+        OnvifDevice currentDevice;
         TextView    tv;
-        ImageView   iv;
+        SurfaceView iv;
         int         id;
+        String      rtspStream;
     };
     cameraT cameraStruct[];
     int cameraID = 1;
+    Activity thisActivity;
+    boolean cameraClick = false;
+    int currentID = 0;
+    String whereToSave;
+    VlcVideoLibrary vlcVideoLibrary = null;
 
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     private long lastTouchTime = 0;
@@ -151,6 +173,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        thisActivity = this;
+
         sensorStruct = new sensorT[SENSOR_COUNT];
         for (int i = 0; i < SENSOR_COUNT; i++) {
             sensorStruct[i] = new sensorT();
@@ -724,12 +748,14 @@ public class MainActivity extends AppCompatActivity
                     if (onvifDeviceList.size() == 0) {
                         Log.d(TAG, "Main: No cameras detected"); return;
                     }
+
                     for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
                         Log.d(TAG, discoveredCamera.toString() + ":" +
                                 discoveredCamera.getIP());
                         id = addCamera(discoveredCamera.getIP());
-                        if (id == 0) return;
+                        if (id == 0) continue;
                     }
+
                     Log.d(TAG, "Save Cameras in file..");
                     ///data/user/0/com.aseemsethi.esp32_iot/files/esp32Cameras
                     FileOutputStream fos;
@@ -749,7 +775,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    int addCamera(String ipaddress) {
+    int addCamera(final String ipaddress) {
         for (int i = 0; i < 9; i++) {
             if (cameraStruct[i].ipaddress == null) continue;
             if ((cameraStruct[i].ipaddress).contains(ipaddress)) {
@@ -763,36 +789,78 @@ public class MainActivity extends AppCompatActivity
         tr.setGravity(Gravity.CENTER);
         // Set new table row layout parameters.
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(5,2,5,2);
+                TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT, 1.7f);
 
         final TextView tv = new TextView(this);
         tv.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT,
                 0.7f));
+        tv.setWidth(80);
         tv.setText(ipaddress);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
         tv.setTextSize(10);
+        tv.setPadding(0,0, 30, 0);
         tr.addView(tv);
 
-        final ImageView iv = new ImageView(this);
-        iv.setBackgroundResource(R.drawable.square);
+        final SurfaceView iv = new SurfaceView(this);
+        iv.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT,
+                1.0f));
+        //iv.setBackgroundResource(R.drawable.square);
+        iv.setPadding(0, 20, 0, 20);
         iv.setId(cameraID);
+        iv.getHolder().setFixedSize(400, 400);
+
+        layoutParams.setMargins(5,5,5,5);
         tr.setLayoutParams(layoutParams);
         tr.addView(iv);
         tl.addView(tr);
+
+        TableRow tr1 = new TableRow(this);
+        TextView tv1 = new TextView(this);
+        tv.setHeight(80);
+        tr1.addView(tv1);
+        tl.addView(tr1);
+
         cameraStruct[cameraID].ipaddress = ipaddress;
         cameraStruct[cameraID].tv = tv;
         cameraStruct[cameraID].iv = iv;
         cameraStruct[cameraID].id = cameraID;
+        cameraStruct[cameraID].currentDevice = new OnvifDevice(
+                ipaddress+":5000",
+                "aseemsethi", "pinewood");
         Log.d(TAG, "addCamera: added: " + cameraID + " : " + ipaddress);
 
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 v.startAnimation(buttonClick);
-                Log.d(TAG, "Camera clicked: " + iv.getId() + " : " +
-                        cameraStruct[v.getId()].ipaddress);
+                if (cameraClick) {
+                    Log.d(TAG, "Currently working with a camera"); return;
+                }
+                cameraClick = true;
+                int id = iv.getId();
+                currentID = id;
+                String ipadd = cameraStruct[v.getId()].ipaddress;
+                Log.d(TAG, "Camera clicked: " + iv.getId() + " : " + ipadd);
+                Log.d(TAG, "Connecting to: " + ipadd);
+                currentDevice = cameraStruct[id].currentDevice;
+                OnvifListener onvifListener = (OnvifListener) thisActivity;
+                cameraStruct[id].currentDevice.setListener(onvifListener);
+                cameraStruct[id].currentDevice.getServices();
+                /*if (cameraStruct[id].currentDevice.isConnected()) {
+                    String uri = cameraStruct[id].currentDevice.getRtspURI();
+                    if (uri == null) {
+                        Log.d(TAG, "Current Device connected, No RTSP URI");
+                        return;
+                    }
+                    Log.d(TAG, "Current Device connected, RTSP URI: " + uri);
+                    cameraStruct[id].tv.setText(uri);
+                } else {
+                    Log.d(TAG, "currentDevice is not connected");
+                    cameraStruct[id].tv.setText(ipadd + " : Not connected");
+                } */
             }
         });
         cameraID += 1;
@@ -920,6 +988,86 @@ public class MainActivity extends AppCompatActivity
         sensorStruct[id].sensorTag = sensorTag;
         sensorStruct[id].notifyOn = notifyOn;
         return true;
+    }
+
+    @Override
+    public void requestPerformed(OnvifResponse onvifResponse) {
+        Log.d(TAG, onvifResponse.getParsingUIMessage());
+
+        if (!onvifResponse.getSuccess()) {
+            Log.e(TAG, "request failed: " + onvifResponse.getRequest().getType() +
+                    "\n Response: " + onvifResponse.getError());
+            cameraClick = false;
+            return;
+        } else {
+            Log.d(TAG,"Request " + onvifResponse.getRequest().getType() +
+                    " performed.");
+            //Log.d(TAG,"Succeeded: " + onvifResponse.getSuccess() +
+            //        "message:" + onvifResponse.getParsingUIMessage());
+        }
+        // if GetServices have been completed, we request the device information
+        if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetServices) {
+            currentDevice.getDeviceInformation();
+            Log.d(TAG, "Get Services: ");
+        }
+        // if GetDeviceInformation have been completed, we request the profiles
+        else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetDeviceInformation) {
+            //TextView textView = findViewById(R.id.explanationTextView);
+            //textView.setText(onvifResponse.getParsingUIMessage());
+            Log.d(TAG, "Get Device Info: " + onvifResponse.getParsingUIMessage());
+            currentDevice.getProfiles();
+        }
+        // if GetProfiles have been completed, we request the Stream URI
+        else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetProfiles) {
+            int profilesCount = currentDevice.getMediaProfiles().size();
+            Log.d(TAG, "Get Profiles: " + onvifResponse.getParsingUIMessage());
+            currentDevice.getStreamURI();
+        }
+        // if GetStreamURI have been completed, we're ready to play the video
+        else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetStreamURI) {
+            //Button button = findViewById(R.id.button);
+            //button.setText(getString(R.string.Play));
+            Log.d(TAG, "Stream URI retrieved: " + currentDevice.getRtspURI());
+            cameraStruct[currentID].tv.setText(cameraStruct[currentID].ipaddress + "\n" +
+                    currentDevice.getRtspURI());
+            cameraStruct[currentID].rtspStream = currentDevice.getRtspURI();
+            cameraClick = false;
+            if (cameraStruct[currentID].currentDevice.isConnected()) {
+                String uri = cameraStruct[currentID].currentDevice.getRtspURI();
+                if (uri == null) {
+                    Log.d(TAG, "Current Device connected, No RTSP URI");
+                    return;
+                }
+                Log.d(TAG, "Current Device connected, RTSP URI: " + uri);
+                getPic(currentID);
+            } else {
+                Log.d(TAG, "currentDevice is not connected");
+            }
+            //currentDevice.getSnapshotUri();
+        }
+    }
+
+    void getPic(int id) {
+        // Keep screen on while streaming.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        ImageView iv;
+        Log.d(TAG, "Playing VLC now");
+        // Directory where images to be saved
+        whereToSave = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/faces/";
+        vlcVideoLibrary = new VlcVideoLibrary(this, this,
+                cameraStruct[id].iv);
+        vlcVideoLibrary.play(cameraStruct[id].rtspStream);
+    }
+
+    @Override
+    public void onComplete() {
+        Toast.makeText(this, "Video loading...", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onError() {
+        Toast.makeText(this, "Error loading video...", Toast.LENGTH_LONG).show();
     }
 
     @Override
