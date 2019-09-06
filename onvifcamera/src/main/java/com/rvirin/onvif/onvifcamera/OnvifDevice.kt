@@ -10,6 +10,8 @@ import com.rvirin.onvif.onvifcamera.OnvifMediaProfiles.Companion.getProfilesComm
 import com.rvirin.onvif.onvifcamera.OnvifMediaStreamURI.Companion.getStreamURICommand
 import com.rvirin.onvif.onvifcamera.OnvifMediaStreamURI.Companion.parseStreamURIXML
 import com.rvirin.onvif.onvifcamera.OnvifServices.Companion.servicesCommand
+import com.rvirin.onvif.onvifcamera.OnvifSnapshotURI.Companion.getSnapshotURICommand
+import com.rvirin.onvif.onvifcamera.OnvifSnapshotURI.Companion.parseSnapshotURIXML
 import com.rvirin.onvif.onvifcamera.OnvifXMLBuilder.envelopeEnd
 import com.rvirin.onvif.onvifcamera.OnvifXMLBuilder.soapHeader
 import okhttp3.MediaType
@@ -43,12 +45,13 @@ class OnvifRequest(val xmlCommand: String, val type: Type) {
         GetServices,
         GetDeviceInformation,
         GetProfiles,
-        GetStreamURI;
+        GetStreamURI,
+        GetSnapshotUri;
 
         fun namespace(): String {
             when (this) {
                 GetServices, GetDeviceInformation -> return "http://www.onvif.org/ver10/device/wsdl"
-                GetProfiles, GetStreamURI -> return "http://www.onvif.org/ver10/media/wsdl"
+                GetProfiles, GetStreamURI, GetSnapshotUri -> return "http://www.onvif.org/ver10/media/wsdl"
             }
         }
     }
@@ -63,6 +66,7 @@ class OnvifCameraPaths {
     var deviceInformation = "/onvif/device_service"
     var profiles = "/onvif/device_service"
     var streamURI = "/onvif/device_service"
+    var snapshotUri = "/onvif/device_service"
 }
 
 /**
@@ -120,6 +124,7 @@ class OnvifDevice(val ipAddress: String, @JvmField val username: String, @JvmFie
     var mediaProfiles: List<MediaProfile> = emptyList()
 
     var rtspURI: String? = null
+    var snapshotUri: String? = null
 
     fun getServices() {
         val request = OnvifRequest(servicesCommand, OnvifRequest.Type.GetServices)
@@ -149,6 +154,13 @@ class OnvifDevice(val ipAddress: String, @JvmField val username: String, @JvmFie
         ONVIFcommunication().execute(request)
     }
 
+    fun GetSnapshotUri() {
+
+        mediaProfiles.firstOrNull()?.let {
+            val request = OnvifRequest(getSnapshotURICommand(it), OnvifRequest.Type.GetSnapshotUri)
+            ONVIFcommunication().execute(request)
+        }
+    }
     /**
      * Communication in Async Task between Android and ONVIF camera
      */
@@ -250,6 +262,7 @@ class OnvifDevice(val ipAddress: String, @JvmField val username: String, @JvmFie
                 OnvifRequest.Type.GetDeviceInformation -> return currentDevice.paths.deviceInformation
                 OnvifRequest.Type.GetProfiles -> return currentDevice.paths.profiles
                 OnvifRequest.Type.GetStreamURI -> return currentDevice.paths.streamURI
+                OnvifRequest.Type.GetSnapshotUri -> return currentDevice.paths.snapshotUri
             }
         }
 
@@ -342,6 +355,12 @@ class OnvifDevice(val ipAddress: String, @JvmField val username: String, @JvmFie
                     val streamURI = parseStreamURIXML(it)
                     currentDevice.rtspURI = appendCredentials(streamURI)
                     parsedResult = "RTSP URI retrieved."
+                }
+            } else if (result.request.type == OnvifRequest.Type.GetSnapshotUri) {
+                result.result?.let {
+                    val streamURI = parseSnapshotURIXML(it)
+                    currentDevice.snapshotUri = appendCredentials(streamURI)
+                    parsedResult = "Snapshot URI retrieved."
                 }
             }
         }

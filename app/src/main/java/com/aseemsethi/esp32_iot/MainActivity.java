@@ -817,6 +817,7 @@ public class MainActivity extends AppCompatActivity
         tr.addView(iv);
         tl.addView(tr);
 
+        //The following row is to insert some space between rows
         TableRow tr1 = new TableRow(this);
         TextView tv1 = new TextView(this);
         tv.setHeight(80);
@@ -849,18 +850,6 @@ public class MainActivity extends AppCompatActivity
                 OnvifListener onvifListener = (OnvifListener) thisActivity;
                 cameraStruct[id].currentDevice.setListener(onvifListener);
                 cameraStruct[id].currentDevice.getServices();
-                /*if (cameraStruct[id].currentDevice.isConnected()) {
-                    String uri = cameraStruct[id].currentDevice.getRtspURI();
-                    if (uri == null) {
-                        Log.d(TAG, "Current Device connected, No RTSP URI");
-                        return;
-                    }
-                    Log.d(TAG, "Current Device connected, RTSP URI: " + uri);
-                    cameraStruct[id].tv.setText(uri);
-                } else {
-                    Log.d(TAG, "currentDevice is not connected");
-                    cameraStruct[id].tv.setText(ipadd + " : Not connected");
-                } */
             }
         });
         cameraID += 1;
@@ -1022,6 +1011,7 @@ public class MainActivity extends AppCompatActivity
             int profilesCount = currentDevice.getMediaProfiles().size();
             Log.d(TAG, "Get Profiles: " + onvifResponse.getParsingUIMessage());
             currentDevice.getStreamURI();
+            //currentDevice.GetSnapshotUri();
         }
         // if GetStreamURI have been completed, we're ready to play the video
         else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetStreamURI) {
@@ -1045,12 +1035,14 @@ public class MainActivity extends AppCompatActivity
             }
             //currentDevice.getSnapshotUri();
         }
+        else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetSnapshotUri) {
+            Log.d(TAG, "Snapshot URI retrieved: " + currentDevice.getSnapshotUri());
+        }
     }
 
     void getPic(int id) {
         // Keep screen on while streaming.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        ImageView iv;
         Log.d(TAG, "Playing VLC now");
         // Directory where images to be saved
         whereToSave = Environment.getExternalStoragePublicDirectory(
