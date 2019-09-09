@@ -153,6 +153,9 @@ public class MainActivity extends AppCompatActivity
         SurfaceView iv;
         int         id;
         String      rtspStream;
+        VlcVideoLibrary vlcVideoLibrary;
+        boolean     added;
+        int         port; // for port forwarding
     };
     cameraT cameraStruct[];
     int cameraID = 1;
@@ -160,7 +163,7 @@ public class MainActivity extends AppCompatActivity
     boolean cameraClick = false;
     int currentID = 0;
     String whereToSave;
-    VlcVideoLibrary vlcVideoLibrary = null;
+    int usedPorts = 0;
 
     final static String MQTTMSG_MSG = "com.aseemsethi.esp32_iot.mqttService.MQTTMSG_MSG";
     private long lastTouchTime = 0;
@@ -316,18 +319,24 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) { e.printStackTrace();}
 
         // Read Cameras from the file
-        //deleteFile("esp32Cameras");
+        // deleteFile("esp32Cameras");
         try {
             BufferedReader inputReader = new BufferedReader(new InputStreamReader(
                     openFileInput("esp32Cameras")));
             String inputString;
             while ((inputString = inputReader.readLine()) != null) {
                 String str = inputString;
-                String[] arrOfStr = str.split(":", 2);
-                // CameraIP:CameraID
-                Log.d(TAG, "Read Camera Node from file: " + str);
+                String[] arrOfStr = str.split(":", 8);
+                // CameraIP:CameraID:rtsp:port
+                Log.d(TAG, "Read Camera Node from file: " +
+                        ":" + arrOfStr.length + ":" + str);
                 if (arrOfStr[0] != null) {
-                    addCamera(arrOfStr[0]);
+                    String rtsp = arrOfStr[2] + ":" + arrOfStr[3] + ":" + arrOfStr[4]
+                            + ":" + arrOfStr[5];
+                    Log.d(TAG, "rtsp uri: " + rtsp);
+                    int port = Integer.parseInt(arrOfStr[6]);
+                    Log.d(TAG, "port: " + port);
+                    addCamera(arrOfStr[0], rtsp, port);
                 }
             }
             inputReader.close();
@@ -752,12 +761,12 @@ public class MainActivity extends AppCompatActivity
                     for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
                         Log.d(TAG, discoveredCamera.toString() + ":" +
                                 discoveredCamera.getIP());
-                        id = addCamera(discoveredCamera.getIP());
+                        id = addCamera(discoveredCamera.getIP(), null, 0);
                         if (id == 0) continue;
                     }
 
-                    Log.d(TAG, "Save Cameras in file..");
                     ///data/user/0/com.aseemsethi.esp32_iot/files/esp32Cameras
+                    /*
                     FileOutputStream fos;
                     try {
                         fos = openFileOutput("esp32Cameras", Context.MODE_APPEND);
@@ -770,16 +779,18 @@ public class MainActivity extends AppCompatActivity
                         fos.close();
                     } catch (FileNotFoundException e) {e.printStackTrace();}
                     catch (IOException e) {e.printStackTrace();}
+                    */
                 }
                 break;
         }
     }
 
-    int addCamera(final String ipaddress) {
+    int addCamera(final String ipaddress, String rtsp, int port) {
         for (int i = 0; i < 9; i++) {
             if (cameraStruct[i].ipaddress == null) continue;
             if ((cameraStruct[i].ipaddress).contains(ipaddress)) {
                 Log.d(TAG, "Camera already added    !!!!");
+                Log.d(TAG, "..." + i + " : " + ipaddress);
                 return 0;
             }
         }
@@ -814,7 +825,7 @@ public class MainActivity extends AppCompatActivity
 
         layoutParams.setMargins(5,5,5,5);
         tr.setLayoutParams(layoutParams);
-        tr.addView(iv);
+        tr.addView(iv );
         tl.addView(tr);
 
         //The following row is to insert some space between rows
@@ -828,28 +839,58 @@ public class MainActivity extends AppCompatActivity
         cameraStruct[cameraID].tv = tv;
         cameraStruct[cameraID].iv = iv;
         cameraStruct[cameraID].id = cameraID;
-        cameraStruct[cameraID].currentDevice = new OnvifDevice(
-                ipaddress+":5000",
-                "aseemsethi", "pinewood");
-        Log.d(TAG, "addCamera: added: " + cameraID + " : " + ipaddress);
-
+        if (rtsp != null) {
+            Log.d(TAG, "addCamera: RTSP is not null...: " + rtsp);
+            cameraStruct[cameraID].rtspStream = rtsp;
+            cameraStruct[cameraID].port = port; usedPorts++;
+            cameraStruct[cameraID].added = true;
+        } else {
+            cameraStruct[cameraID].added = false;
+            cameraStruct[cameraID].port = 554 + usedPorts; usedPorts++;
+        }
+        tv.setText(ipaddress + ":" + port);
+        cameraStruct[cameraID].vlcVideoLibrary = new VlcVideoLibrary(this,
+                this, cameraStruct[cameraID].iv);
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 v.startAnimation(buttonClick);
+                int id = iv.getId();
+                Log.d(TAG, "Camera clicked: " + id + ":" + currentID);
+                // TBD - remove
                 if (cameraClick) {
-                    Log.d(TAG, "Currently working with a camera"); return;
+                    Log.d(TAG, "Currently working with a camera");
+                    //return;
+                }
+                if (id == currentID) {
+                    if ((cameraStruct[currentID].vlcVideoLibrary != null) &&
+                            cameraStruct[currentID].vlcVideoLibrary.isPlaying()) {
+                        Log.d(TAG, "VLC playing...stopping");
+                        cameraStruct[currentID].vlcVideoLibrary.pause();
+                        return;
+                    }
                 }
                 cameraClick = true;
-                int id = iv.getId();
                 currentID = id;
                 String ipadd = cameraStruct[v.getId()].ipaddress;
-                Log.d(TAG, "Camera clicked: " + iv.getId() + " : " + ipadd);
-                Log.d(TAG, "Connecting to: " + ipadd);
-                currentDevice = cameraStruct[id].currentDevice;
-                OnvifListener onvifListener = (OnvifListener) thisActivity;
-                cameraStruct[id].currentDevice.setListener(onvifListener);
-                cameraStruct[id].currentDevice.getServices();
+
+                if (cameraStruct[id].rtspStream != null) {
+                    Log.d(TAG, "RTP Stream not null...just play it: " +
+                            cameraStruct[id].rtspStream + "\n" +
+                            cameraStruct[id].vlcVideoLibrary);
+                    cameraStruct[id].vlcVideoLibrary.play(cameraStruct[id].rtspStream);
+                } else {
+                    cameraStruct[id].currentDevice = new OnvifDevice(
+                            cameraStruct[id].ipaddress + ":5000",
+                            "aseemsethi", "pinewood");
+                    Log.d(TAG, "clickCamera: " + id + " : " + ipaddress + "\n" +
+                            deviceAddress + "\n" +
+                            " :vlc: " + cameraStruct[id].vlcVideoLibrary);
+                    currentDevice = cameraStruct[id].currentDevice;
+                    OnvifListener onvifListener = (OnvifListener) thisActivity;
+                    cameraStruct[id].currentDevice.setListener(onvifListener);
+                    cameraStruct[id].currentDevice.getServices();
+                }
             }
         });
         cameraID += 1;
@@ -981,6 +1022,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void requestPerformed(OnvifResponse onvifResponse) {
+        int foundID = 0;
         Log.d(TAG, onvifResponse.getParsingUIMessage());
 
         if (!onvifResponse.getSuccess()) {
@@ -1015,15 +1057,60 @@ public class MainActivity extends AppCompatActivity
         }
         // if GetStreamURI have been completed, we're ready to play the video
         else if (onvifResponse.getRequest().getType() == OnvifRequest.Type.GetStreamURI) {
-            //Button button = findViewById(R.id.button);
-            //button.setText(getString(R.string.Play));
+            String[] arrOfStr1 = currentDevice.getRtspURI().split("@", 2);
+            String[] arrOfStr2 = arrOfStr1[1].split(":", 2);
+            String recvdAddr = arrOfStr2[0];
+            Log.d(TAG, "Recvd rtsp uri: " + currentDevice.getRtspURI() +
+                    "address: " + recvdAddr);
+
+            boolean found = false;
+            for (int i = 0; i < 9; i++) {
+                if (cameraStruct[i].ipaddress == null) continue;
+                if ((cameraStruct[i].ipaddress).contains(recvdAddr) ||
+                        (cameraStruct[i].ipaddress).contains(deviceAddress)) {
+                    Log.d(TAG, "Found cameraStruct  !!!!" + i); found = true;
+                    foundID = i; break;
+                }
+            }
+            if (found == false) return;
+
+            Log.d(TAG, "CurrentCamera ID: " + foundID);
+            if ((cameraStruct[foundID].vlcVideoLibrary != null) &&
+                    cameraStruct[foundID].vlcVideoLibrary.isPlaying()) {
+                Log.d(TAG, "VLC playing");
+                cameraStruct[foundID].vlcVideoLibrary.stop(); return;
+            }
             Log.d(TAG, "Stream URI retrieved: " + currentDevice.getRtspURI());
-            cameraStruct[currentID].tv.setText(cameraStruct[currentID].ipaddress + "\n" +
-                    currentDevice.getRtspURI());
-            cameraStruct[currentID].rtspStream = currentDevice.getRtspURI();
+            //cameraStruct[currentID].tv.setText(cameraStruct[currentID].ipaddress + "\n" +
+            //        currentDevice.getRtspURI());
+            // rtsp://aseemsethi:pinewood@192.168.1.101:554/onvif1
+            String tempStr = "@" + deviceAddress + ":";
+            String newUri = currentDevice.getRtspURI().replaceAll("@.*?:",
+                    tempStr);
+            String newUri1 = newUri.replaceAll("554",
+                    Integer.toString(cameraStruct[foundID].port));
+            cameraStruct[foundID].currentDevice.setRtspURI(newUri1);
+            Log.d(TAG, "New URI: " + newUri1);
+            cameraStruct[foundID].rtspStream = newUri1;
             cameraClick = false;
-            if (cameraStruct[currentID].currentDevice.isConnected()) {
-                String uri = cameraStruct[currentID].currentDevice.getRtspURI();
+            cameraStruct[foundID].tv.setText(cameraStruct[foundID].ipaddress + ":" +
+                    cameraStruct[foundID].port);
+            FileOutputStream fos;
+            try {
+                fos = openFileOutput("esp32Cameras", Context.MODE_APPEND);
+                //for (DiscoveredCamera discoveredCamera : onvifDeviceList) {
+                    String str = cameraStruct[foundID].ipaddress + ":" +
+                            foundID + ":" + newUri + ":" + cameraStruct[foundID].port;
+                    fos.write(str.getBytes());
+                    fos.write("\n".getBytes());
+                    Log.d(TAG, "Saving Camera to file" + ":" + str);
+                    cameraStruct[foundID].added = true;
+                //}
+                fos.close();
+            } catch (FileNotFoundException e) {e.printStackTrace();}
+            catch (IOException e) {e.printStackTrace();}
+            if (cameraStruct[foundID].currentDevice.isConnected()) {
+                String uri = cameraStruct[foundID].currentDevice.getRtspURI();
                 if (uri == null) {
                     Log.d(TAG, "Current Device connected, No RTSP URI");
                     return;
@@ -1043,13 +1130,15 @@ public class MainActivity extends AppCompatActivity
     void getPic(int id) {
         // Keep screen on while streaming.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        Log.d(TAG, "Playing VLC now");
+        Log.d(TAG, "Playing VLC now for camera id: " + id + " : vlc: " +
+                cameraStruct[id].vlcVideoLibrary);
         // Directory where images to be saved
         whereToSave = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES) + "/faces/";
-        vlcVideoLibrary = new VlcVideoLibrary(this, this,
-                cameraStruct[id].iv);
-        vlcVideoLibrary.play(cameraStruct[id].rtspStream);
+        if (cameraStruct[id].vlcVideoLibrary == null) {
+            Log.d(TAG, "VLC is null"); return;
+        }
+        cameraStruct[id].vlcVideoLibrary.play(cameraStruct[id].rtspStream);
     }
 
     @Override
