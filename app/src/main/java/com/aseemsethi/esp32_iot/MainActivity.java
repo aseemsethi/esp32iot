@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         TableRow      tr;
         TextView      tv;
         int status_code;  // OPEN or CLOSE CODE
-        Time lastTimeChanged;
+        //Time lastTimeChanged;
     };
     sensorT sensorStruct[];
 
@@ -361,7 +361,7 @@ public class MainActivity extends AppCompatActivity
                             sensorT.get("status"));
                     sensorStruct[i].btn.setText("\n\n" + sensorT.get("status"));
                     sensorStruct[i].tv.setText(sensorStruct[i].sensorName + ":" +
-                            i + "\n" + "Current Status since: " +
+                            i + "\n" + "Current Status since: " + "\n" +
                             sensorT.get("time"));
                 }
                 String st = sensorT.get("status");
@@ -801,12 +801,12 @@ public class MainActivity extends AppCompatActivity
         // Set new table row layout parameters.
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
                 TableRow.LayoutParams.WRAP_CONTENT,
-                TableRow.LayoutParams.WRAP_CONTENT, 1.7f);
+                TableRow.LayoutParams.WRAP_CONTENT, 1.5f);
 
         final TextView tv = new TextView(this);
         tv.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT,
-                0.7f));
+                0.5f));
         tv.setWidth(80);
         tv.setText(ipaddress);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
@@ -912,21 +912,26 @@ public class MainActivity extends AppCompatActivity
         tr.setGravity(Gravity.CENTER);
         // Set new table row layout parameters.
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+                TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT,
+                1.5f);
         layoutParams.setMargins(-5,-5,-5,-5);
         //tr.setLayoutParams(layoutParams);
 
         final TextView tv = new TextView(this);
         tv.setLayoutParams(new TableRow.LayoutParams(
                 TableRow.LayoutParams.WRAP_CONTENT,
-                TableRow.LayoutParams.WRAP_CONTENT,0.7f));
+                TableRow.LayoutParams.WRAP_CONTENT,0.5f));
         tv.setText(sensorName + ":" + id +
                    "\n" + "Current Status since: ");
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD_ITALIC);
         tv.setTextSize(10);
+        tr.setLayoutParams(layoutParams);
         tr.addView(tv);
 
         final Button btn = new Button(this);
+        btn.setLayoutParams(new TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT,1.0f));
         btn.setId(id);
         btn.setBackgroundResource(R.drawable.sensor);
         tr.addView(btn);
@@ -1258,7 +1263,7 @@ public class MainActivity extends AppCompatActivity
                         }
                         sensorStruct[i].btn.setText("\n\n\n" + arrOfStr[2]);
                         sensorStruct[i].tv.setText(sensorStruct[i].sensorName + ":" +
-                                id + "\n" + "Current Status since: " +
+                                id + "\n" + "Current Status since: " + "\n" +
                                 sensorList.get("time"));
                         if ((arrOfStr[2].trim()).equals("Open")) {
                             sensorStruct[i].status_code = OPEN_CODE;

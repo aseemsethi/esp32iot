@@ -26,8 +26,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import static android.content.ContentValues.TAG;
@@ -65,7 +67,8 @@ public class mqttService extends Service {
         public int    id;
         Button btn;
         int status_code;  // OPEN or CLOSE CODE
-        Time lastTimeChanged;
+        //Time lastTimeChanged;
+        String lastTimeChanged;
     };
     sensorT sensorStruct[];
     String lastMqttTopic="";
@@ -150,10 +153,12 @@ public class mqttService extends Service {
                         Log.d(TAG, "No Sensor state change: " + sensorList.get("status") +
                                 "-> " + (arrOfStr[2].trim()));
                     } else {
-                        sensorStruct[i].lastTimeChanged =
-                                new Time(Calendar.getInstance().getTimeInMillis());
-                        Log.d(TAG, "Sensor state change: " + sensorList.get("status") +
-                                "-> " + (arrOfStr[2].trim()) + " at: " +
+                        //sensorStruct[i].lastTimeChanged =
+                        //        new Time(Calendar.getInstance().getTimeInMillis());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy ':' HH:mm:ss");
+                        sensorStruct[i].lastTimeChanged = sdf.format(new Date());
+                        Log.d(TAG, "Sensor update: " + sensorList.get("status") +
+                                "-> " + (arrOfStr[2].trim()) + " : " +
                                 sensorStruct[i].lastTimeChanged);
                         int count = db.UpdateSensorTime(sensorStruct[i].lastTimeChanged.toString(),
                                 id);
