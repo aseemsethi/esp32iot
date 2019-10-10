@@ -99,6 +99,7 @@ import com.pedro.vlc.VlcVideoLibrary;
 // 239.255.255.250. Communication between nodes is done using SOAP-over-UDP.
 // UDP ports 139, 445, 1124, 3702 TCP ports 139, 445, 3702, 49179, 5357,5358
 //
+// UPnP Library - https://github.com/4thline/cling
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnvifListener, VlcListener {
 

@@ -143,6 +143,20 @@ public class MRTActivity extends AppCompatActivity {
                 startSendHttpRequestThread(uri);
             }
         });
+        final Button timeB = findViewById(R.id.time_b);
+        timeB.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(deviceAddress.isEmpty()) {
+                    //mAdapter.add("Select an IOT Node first", Color.BLUE);
+                    //mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+                    return;
+                }
+                v.startAnimation(buttonClick);
+                String uri = "http://" + deviceAddress + ":8080/check?time=1";
+                startSendHttpRequestThread(uri);
+            }
+        });
         final Button clearB = findViewById(R.id.clearMRT_b);
         clearB.setOnClickListener( new View.OnClickListener() {
             @Override

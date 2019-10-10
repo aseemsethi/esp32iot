@@ -77,6 +77,7 @@ public class LogsActivity extends AppCompatActivity {
                     mAdapter.add("Sending Logs Start to Device: " + uri, Color.BLUE);
                     mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     startSendHttpRequestThread(uri);
+                    startSendHttpRequestThread(uri);
                 }
             });
         Button getB = (Button) findViewById(R.id.getLogsB);
