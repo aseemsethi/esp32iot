@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_8 = 8; // for mrt
     private final static int REQUEST_CODE_9 = 9; // for addCamera
     private final static int REQUEST_CODE_10 = 10; // for scanCamera
+    private final static int REQUEST_CODE_11 = 11; // for blescan
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -123,9 +124,7 @@ public class MainActivity extends AppCompatActivity
     String deviceAddress = "";
     String lastMqttTopic ="";
     private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.1F);
-    MqttHelper mqttHelper;
     String mqtt_token = "";
-    //MyReceiver myReceiver;
     BroadcastReceiver myReceiverMqtt = null;
     BroadcastReceiver myReceiverMqttMsg = null;
     private final static int OPEN_CODE=0;
@@ -628,6 +627,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, ScanActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_10);
+        } else if (id == R.id.nav_scan_ble) {
+            Intent intent = new Intent(this, blescanActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_11);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

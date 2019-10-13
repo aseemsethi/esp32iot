@@ -29,6 +29,10 @@
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Scan Cameras" />
         <item
+            android:id="@+id/nav_scan_ble"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Scan BLE Sensors" />
+        <item
             android:id="@+id/nav_mqtt"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Set MQTT Topic" />
