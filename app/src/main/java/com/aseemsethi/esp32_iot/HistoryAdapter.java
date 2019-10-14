@@ -27,7 +27,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mTextView;
         LinearLayout rootView;//newly added field
-        LinearLayout postView;
 
         public ViewHolder(View v) {
             super(v);
@@ -61,16 +60,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        //Log.d(TAG, "Bind Id: " + position);
-        //holder.itemView.setBackgroundColor(colorVar);
-        //holder.rootView.setBackgroundColor(myColors.get(position));
         holder.mTextView.setTextSize(12);
         holder.mTextView.setTextColor(myColors.get(position));
         holder.mTextView.setText(history.get(position));
 
         holder.mTextView.setSelected(selectedPos == position);
-        //holder.mTextView.setBackgroundColor(selected_position == position ?
-        // Color.GREEN : Color.TRANSPARENT);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

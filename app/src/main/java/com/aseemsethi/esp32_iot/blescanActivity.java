@@ -19,8 +19,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -44,6 +46,8 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+
+import static java.security.AccessController.getContext;
 
 public class blescanActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
@@ -102,6 +106,11 @@ public class blescanActivity extends AppCompatActivity {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new HistoryAdapter(new ArrayList<String>());
+        DividerItemDecoration itemDecorator = new DividerItemDecoration(getApplicationContext(),
+                DividerItemDecoration.VERTICAL);
+        itemDecorator.setDrawable(ContextCompat.getDrawable(getApplicationContext(),
+                R.drawable.divider));
+        mRecyclerView.addItemDecoration(itemDecorator);
         mRecyclerView.setAdapter(mAdapter);
 
         btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
@@ -115,7 +124,8 @@ public class blescanActivity extends AppCompatActivity {
         }
 
         // Make sure we have access coarse location enabled, if not, prompt the user to enable it
-        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("This app needs location access");
             builder.setMessage("Please grant location access so this app can detect peripherals.");
@@ -123,7 +133,8 @@ public class blescanActivity extends AppCompatActivity {
             builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                            PERMISSION_REQUEST_COARSE_LOCATION);
                 }
             });
             builder.show();
@@ -195,9 +206,11 @@ public class blescanActivity extends AppCompatActivity {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             mAdapter.add("Device Name: " + result.getDevice().getName() +
-                    " rssi: " + result.getRssi(), Color.BLUE);
+                    " Address: " + result.getDevice().getAddress() +
+                    " Rssi: " + result.getRssi(), Color.BLUE);
             Log.d(TAG, "Device Name: " + result.getDevice().getName() +
-                    " rssi: " + result.getRssi());
+                    " Address: " + result.getDevice().getAddress() +
+                    " Rssi: " + result.getRssi());
             mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
         }
     };
