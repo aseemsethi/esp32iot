@@ -46,14 +46,22 @@
                 android:icon="@drawable/ic_menu_slideshow"
                 android:title="Notifications" />
             <item
+                android:id="@+id/nav_critical"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="Critical Msgs" />
+
+        </menu>
+    </item>
+    <item android:title="MRT">
+        <menu>
+            <item
                 android:id="@+id/nav_logs"
                 android:icon="@drawable/ic_menu_slideshow"
-                android:title="Logs" />
+                android:title="Activate Logs" />
             <item
                 android:id="@+id/nav_mrt"
                 android:icon="@drawable/ic_menu_slideshow"
                 android:title="MRT" />
         </menu>
     </item>
-
 </menu>

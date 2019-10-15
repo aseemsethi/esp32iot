@@ -188,6 +188,7 @@ public class MRTActivity extends AppCompatActivity {
                 Log.d(TAG, "Clearing Device config File and deleting all Sensors !!!");
                 deleteFile("esp32SensorNode");
                 deleteFile("esp32Notifications");
+                deleteFile("esp32Critical");
                 deleteFile("esp32mqttTopic");
                 deleteFile("esp32Cameras");
                 String uri = "http://" + deviceAddress + ":8080/clear";

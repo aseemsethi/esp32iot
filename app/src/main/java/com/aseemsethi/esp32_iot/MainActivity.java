@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity
     private final static int REQUEST_CODE_9 = 9; // for addCamera
     private final static int REQUEST_CODE_10 = 10; // for scanCamera
     private final static int REQUEST_CODE_11 = 11; // for blescan
+    private final static int REQUEST_CODE_12 = 12; // for critical msgs
 
     private static final int REQUEST_WIFI = 1;
     private static final String KEY_RESPONSE_TEXT = "KEY_RESPONSE_TEXT";
@@ -631,6 +632,10 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, blescanActivity.class);
             intent.putExtra("address", deviceAddress);
             startActivityForResult(intent, REQUEST_CODE_11);
+        } else if (id == R.id.nav_critical) {
+            Intent intent = new Intent(this, criticalNotificationsActivity.class);
+            intent.putExtra("address", deviceAddress);
+            startActivityForResult(intent, REQUEST_CODE_12);
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

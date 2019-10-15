@@ -138,6 +138,15 @@ public class mqttService extends Service {
         }
         if (id == 0) {
             Log.d(TAG, "This is a test MQTT Msg...return true");
+            // Enter this msg into the Critical File to be read from UI
+            FileOutputStream fos;
+            try {
+                fos = openFileOutput("esp32Critical", Context.MODE_APPEND);
+                fos.write(msg.getBytes());
+                fos.close();
+                Log.d(TAG, "Written msg to Critical: " + msg);
+            } catch (FileNotFoundException e) {e.printStackTrace();}
+            catch (IOException e) {e.printStackTrace();}
             return;
         }
         for (int i = 0; i < SENSOR_COUNT; i++) {
